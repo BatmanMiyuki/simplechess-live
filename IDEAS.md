@@ -30,7 +30,7 @@
 | B1 | **Favoris avec alerte Elo** | 🔧 | ⭐ Suis des joueurs → notification/push quand leur Elo change |
 | B2 | **"Mon historique perso"** | 🔧 | Stocke chaque snapshot de TON Elo → graphique long terme même si l'API ne garde pas tout |
 | B3 | **Objectifs & prédictions** | ⚡ | "À ton rythme, tu atteins 2400 le 12/03" (régression linéaire) + objectifs personnalisés |
-| B4 | **Palmarès / badges** | ⚡ | Badges : premier 2000, 100 parties, top 50 France... avec dates |
+| B4 | ~~Palmarès / badges~~ | ✖ | **Retiré** (implémenté en v3, supprimé à la demande de l'utilisateur) |
 | B5 | **Stats par couleur & ouvertures** | 🔧 | Blanc vs noir, ouverture favorite, winrate par premier coup (dispo dans l'API stats) |
 | B6 | **Tête-à-tête d'adversaires** | 🔧 | "Tu n'as jamais battu X", ta plus belle victoire, ton pire cauchemar |
 | B7 | **Rival automatique** | ⚡ | Détecte le joueur qui a le même Elo que toi et progresse aussi → "ton rival" |

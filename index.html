@@ -111,10 +111,16 @@
   .flag{font-size:16px; margin-right:7px; vertical-align:-2px}
   .msg{padding:34px; text-align:center; color:var(--dim)}
   .nav{display:flex; justify-content:space-between; margin-top:14px; font-size:12.5px; color:var(--dim2); flex-wrap:wrap; gap:6px}
-  /* ---------- panneaux ---------- */
-  .panel{margin:0 0 16px; background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; display:none; box-shadow:0 10px 30px rgba(0,0,0,.30)}
+  /* ---------- panneaux (modales superposées au classement) ---------- */
+  #panelBackdrop{position:fixed; inset:0; z-index:60; background:rgba(3,7,11,.66);
+    backdrop-filter:blur(4px); display:none}
+  #panelBackdrop.show{display:block}
+  .panel{position:fixed; z-index:70; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:min(700px, calc(100vw - 20px)); max-height:88vh; overflow-y:auto;
+    background:var(--panel); border:1px solid var(--line2); border-radius:18px;
+    display:none; box-shadow:0 24px 70px rgba(0,0,0,.55)}
   .panel.show{display:block}
-  .panel-head{display:flex; align-items:center; gap:14px; padding:17px 19px; background:linear-gradient(135deg,var(--panel2),#141d27); flex-wrap:wrap; border-bottom:1px solid var(--line)}
+  .panel-head{position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:14px; padding:17px 19px; background:linear-gradient(135deg,var(--panel2),#141d27); flex-wrap:wrap; border-bottom:1px solid var(--line)}
   .avatar{width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#1d2b3a,#111923);
     display:flex; align-items:center; justify-content:center; font-size:27px; overflow:hidden; flex-shrink:0; border:1px solid var(--line2)}
   .avatar img{width:100%; height:100%; object-fit:cover}
@@ -162,10 +168,7 @@
   .hist .bar{flex:1; background:linear-gradient(180deg,var(--green),rgba(63,167,214,.35)); border-radius:4px 4px 0 0; min-height:2px; position:relative}
   .hist .bar span{position:absolute; top:-16px; left:0; right:0; text-align:center; font-size:10px; color:var(--dim2)}
   .hist-labels{display:flex; justify-content:space-between; padding:4px 19px 10px; font-size:10.5px; color:var(--dim2)}
-  /* ---------- badges / pays / partage ---------- */
-  .brandges{display:flex; gap:8px; flex-wrap:wrap; padding:16px 19px 2px}
-  .badge2{display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; color:var(--dim2)}
-  .badge2.earned{border-color:rgba(242,201,76,.55); color:var(--gold); background:rgba(242,201,76,.07); box-shadow:0 0 12px rgba(242,201,76,.12)}
+  /* ---------- pays / partage ---------- */
   .country-row{display:flex; align-items:center; gap:12px; padding:11px 19px; border-bottom:1px solid #1a2632; cursor:pointer; font-size:13.5px; flex-wrap:wrap}
   .country-row:hover{background:#1a2531}
   .country-row .c-count{margin-left:auto; color:var(--dim2); font-size:12px; text-align:right}
@@ -198,6 +201,7 @@
   <div class="game-switch" id="gameSwitch"></div>
   <div class="tabs" id="tabs"></div>
 
+  <div id="panelBackdrop"></div>
   <div class="panel" id="playerPanel"></div>
   <div class="panel" id="accountPanel"></div>
   <div class="panel" id="statsPanel"></div>
@@ -603,9 +607,8 @@ function populateCountries(){
 
 /* ---------- panneau joueur + graphique ---------- */
 async function showPlayer(p){
-  closePanels();
   const panel=$("playerPanel");
-  panel.className="panel show";
+  openPanel("playerPanel");
   panel.innerHTML=`<div class="panel-head">
       <div class="avatar" id="ppAva">♟️</div>
       <div><h2>${esc(p.name)}</h2><div class="sub" id="ppSub">chargement…</div></div>
@@ -627,11 +630,6 @@ async function showPlayer(p){
         ${r.rank?`<span class="m-rank">#${r.rank} mondial</span>`:""}`;
       grid.appendChild(d);
     });
-    // B4 — badges / palmarès
-    const b4=computeBadges(data.ratings);
-    data.badges=b4;
-    const bd=document.createElement("div"); bd.innerHTML=badgesHtml(b4);
-    grid.after(bd);
     // B9 — carte partageable
     const shareBtn=document.createElement("button");
     shareBtn.className="share-btn"; shareBtn.textContent="🖼️ Partager la carte";
@@ -658,7 +656,6 @@ async function showPlayer(p){
     snapBlock.innerHTML=`<h3>⏱️ Évolution — mesures ChessLive</h3><div id="snapBox"><div class="chart-note">Collecte en cours… (1 mesure toutes les 30 min, 2+ nécessaires pour tracer)</div></div>`;
     panel.appendChild(snapBlock);
     if(snapHist) drawChart($("snapBox"), snapHist, `${esc(p.name)} · mesures ChessLive`);
-    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }catch(e){
     panel.querySelector(".stats-grid").innerHTML=`<div class="msg">${esc(e.message)}</div>`;
   }
@@ -716,9 +713,8 @@ function drawChart(box, hist, title){
 /* ---------- mon compte ---------- */
 $("accountName").textContent = CFG.MY_USERNAME || "Mon compte";
 async function showAccount(){
-  closePanels();
   const panel=$("accountPanel");
-  panel.className="panel show";
+  openPanel("accountPanel");
   if(state.game==="socialchess"){ /* le compte perso est lié à SimpleChess */ }
   panel.innerHTML=`<div class="panel-head">
       <div class="avatar">👤</div>
@@ -747,10 +743,6 @@ async function showAccount(){
       });
     };
     renderCards();
-    // B4 — badges du compte
-    const myBadges=computeBadges(data.ratings);
-    const bd=document.createElement("div"); bd.innerHTML=badgesHtml(myBadges);
-    grid.after(bd);
     const block=document.createElement("div");
     block.className="chart-block";
     block.innerHTML=`<h3 id="myChartTitle">📈 Évolution Elo</h3><div id="myChartBox"><div class="msg">Choisissez un mode ci-dessus</div></div>`;
@@ -770,13 +762,23 @@ async function showAccount(){
         else $("mySnapBox").innerHTML=`<div class="chart-note">Pas encore assez de mesures (2+ nécessaires, 1 toutes les 30 min).</div>`;
       }catch(e){ $("myChartBox").innerHTML=`<div class="chart-note">Graphique indisponible : ${esc(e.message)}</div>`; }
     }
-    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }catch(e){
     panel.querySelector(".stats-grid").innerHTML=`<div class="msg">Impossible de charger le compte : ${esc(e.message)}</div>`;
   }
 }
 
-function closePanels(){ $("playerPanel").className="panel"; $("accountPanel").className="panel"; }
+/* ---------- panneaux : ouverture/fermeture (modales) ---------- */
+function openPanel(id){
+  closePanels();
+  $(id).className="panel show";
+  $("panelBackdrop").className="show";
+}
+function closePanels(){
+  ["playerPanel","accountPanel","statsPanel","countriesPanel"].forEach(id=>{ $(id).className="panel"; });
+  $("panelBackdrop").className="";
+}
+$("panelBackdrop").onclick=closePanels;
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closePanels(); });
 
 /* ---------- installation PWA ---------- */
 let deferredPrompt=null;
@@ -894,9 +896,8 @@ function histogramData(rows){
   return b;
 }
 async function openStats(){
-  closePanels();
   const panel=$("statsPanel");
-  panel.className="panel show";
+  openPanel("statsPanel");
   panel.innerHTML=`<div class="panel-head"><div class="avatar">📊</div>
     <div><h2>Stats — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">total joueurs classés &amp; répartition des Elo</div></div>
     <button class="panel-close" onclick="closePanels()">✕</button></div>
@@ -924,14 +925,13 @@ async function openStats(){
     <div><h2>Stats — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">total joueurs classés &amp; répartition des Elo</div></div>
     <button class="panel-close" onclick="closePanels()">✕</button></div>
     ${totHtml}${hist||'<div class="msg">Pas de données pour l\'histogramme.</div>'}`;
-  panel.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
 /* =========================================================
    A3 — JOUEURS PAR PAYS
    ========================================================= */
 function openCountries(){
-  closePanels();
+  openPanel("countriesPanel");
   const agg={};
   lastPlayers.forEach(p=>{
     const c=p.country||"—";
@@ -946,11 +946,9 @@ function openCountries(){
       <span class="c-avg">${avg(a)??"—"} Elo moy.</span>
       <span class="c-count">${a.n} joueur(s) · meilleur : ${esc(a.best?a.best.name:"—")} ${a.best?("("+a.best.elo+")"):""} → filtrer</span>
     </div>`).join("");
-  $("countriesPanel").className="panel show";
   $("countriesPanel").innerHTML=`<div class="panel-head"><div class="avatar">🌍</div>
     <div><h2>Joueurs par pays — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">top ${lastPlayers.length} actuel · cliquez pour filtrer le classement</div></div>
     <button class="panel-close" onclick="closePanels()">✕</button></div>${list}`;
-  $("countriesPanel").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function setCountry(c){ if(c!=="—"){ $("countryFilter").value=c; render(); } closePanels(); }
 
@@ -979,35 +977,6 @@ function exportRows(fmt){
 }
 
 /* =========================================================
-   B4 — BADGES / PALMARÈS
-   ========================================================= */
-function computeBadges(ratings){
-  const a=ratings.reduce((acc,r)=>({
-    g:acc.g+(r.games||0), w:acc.w+(r.wins||0),
-    mb:Math.max(acc.mb, r.eloBest||r.elo||0),
-    bestRank:Math.min(acc.bestRank, r.rank||Infinity)
-  }),{g:0,w:0,mb:0,bestRank:Infinity});
-  const B=[]; const add=(icon,label,ok)=>B.push({icon,label,ok});
-  add("♟️","100 parties",a.g>=100);
-  add("👑","1 000 parties",a.g>=1000);
-  add("💎","10 000 parties",a.g>=10000);
-  add("🔥","500 victoires",a.w>=500);
-  add("🎯","2 000 Elo",a.mb>=2000);
-  add("🚀","2 200 Elo",a.mb>=2200);
-  add("⚡","2 400 Elo",a.mb>=2400);
-  add("🌌","2 600 Elo",a.mb>=2600);
-  add("🥇","N°1 mondial",a.bestRank===1);
-  add("🥈","Top 10 mondial",a.bestRank<=10);
-  add("🥉","Top 50 mondial",a.bestRank<=50);
-  add("🏅","Top 100 mondial",a.bestRank<=100);
-  return {badges:B, done:B.filter(b=>b.ok).length, total:B.length};
-}
-function badgesHtml(b){
-  return `<div class="brandges"><span class="sub" style="width:100%;margin-bottom:2px">Palmarès : ${b.done}/${b.total} badges débloqués</span>`+
-    b.badges.map(x=>`<span class="badge2 ${x.ok?"earned":""}" title="${esc(x.label)}">${x.icon} ${esc(x.label)}${x.ok?"":" (à débloquer)"}</span>`).join("")+`</div>`;
-}
-
-/* =========================================================
    B9 — CARTE DE JOUEUR PARTAGEABLE (PNG 1080×1350)
    ========================================================= */
 async function shareCard(data){
@@ -1017,7 +986,6 @@ async function shareCard(data){
       <text x="40" y="48" fill="#8fa0b0" font-size="30" font-family="Arial,Helvetica">${esc(r.label||r.mode)}</text>
       <text x="860" y="50" fill="#7fdb6a" font-size="38" font-weight="bold" text-anchor="end" font-family="Arial,Helvetica">${r.elo??"—"}</text>
     </g>`).join("");
-  const b=data.badges;
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a22"/><stop offset="1" stop-color="#0a0e13"/></linearGradient>
@@ -1032,8 +1000,7 @@ async function shareCard(data){
     <text x="540" y="392" fill="#ffffff" font-size="66" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica">${esc(data.name)}</text>
     <text x="540" y="444" fill="#8fa0b0" font-size="32" text-anchor="middle" font-family="Arial,Helvetica">${flagEmoji(data.country)} ${esc(data.country||"—")} · ${esc(curGame().name)}</text>
     ${lines}
-    <text x="540" y="1198" fill="#66788a" font-size="27" text-anchor="middle" font-family="Arial,Helvetica">${b?("Palmarès "+b.done+"/"+b.total+" badges"):""}</text>
-    <text x="540" y="1252" fill="#66788a" font-size="26" text-anchor="middle" font-family="Arial,Helvetica">ChessLive — classements en direct (projet non officiel) · ${new Date().toLocaleDateString("fr-FR")}</text>
+    <text x="540" y="1198" fill="#66788a" font-size="26" text-anchor="middle" font-family="Arial,Helvetica">ChessLive — classements en direct (projet non officiel) · ${new Date().toLocaleDateString("fr-FR")}</text>
   </svg>`;
   const img=new Image();
   await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej;

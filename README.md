@@ -12,14 +12,14 @@ Deux jeux supportés, avec **switch intégré** :
 ## ✨ Fonctionnalités (v3)
 
 - **Classement en direct** par mode + **filtre par pays**, recherche, auto-refresh
-- **Profil joueur** : tous ses Elo + rang mondial + **badges / palmarès** (12 badges : Elo 2000/2200/2400, top 10 mondial, 100 parties…)
-- **Carte de joueur partageable** (`PNG 1080×1350`) : gradient, cavalier, Elo par mode, palmarès — partage natif ou téléchargement
+- **Profil joueur** : tous ses Elo + rang mondial, dans une **modale superposée** au classement
+- **Carte de joueur partageable** (`PNG 1080×1350`) : gradient, cavalier, Elo par mode — partage natif ou téléchargement
 - **Graphique d'évolution Elo** (SimpleChess – API officielle `eloChartData`) + **time-lapse local** : ChessLive mémorise le classement (1 mesure / 30 min) et trace l'évolution dans le profil et le compte
 - **Movers & Shakers** : tri par rang gagné, ▲/▼/NEW, « X en mouvement · Y nouveaux »
 - **Stats & totaux** : histogramme Elo du top + **nombre total de joueurs classés** (SocialChess : exact, via `eloRanking` du bas du classement ; SimpleChess : non publié par l'API amont → note honnête affichée)
 - **Classement par pays** : nb de joueurs, Elo moyen, meilleur — clic pour filtrer
 - **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
-- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : ILoveKaroline 🚀) : graphique + badges + mesures ChessLive
+- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : ILoveKaroline 🚀) : graphique + mesures ChessLive
 - **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — y compris **ILoveKaroline #2 bullet & blitz** 😉
 
 ---
