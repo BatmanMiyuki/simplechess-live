@@ -1,151 +1,101 @@
-# ♞ SimpleChess Leaderboard API
+# ♟️ ChessLive
 
-API **non officielle** qui expose le **classement mondial en direct** de
-[SimpleChess](https://www.simplechess.com) (Europe Echecs) pour chaque mode de
-jeu : **Bullet 🚀, Blitz ⚡, Rapid (standard) 🕒, Chess960 🎲, Puzzle Battle 🧩**.
+**Classements échecs en direct** — PWA installable (installable, hors-ligne après 1ère visite, graphique d'évolution Elo).
 
-Il n'existe aucun classement public consultable en ligne pour SimpleChess
-(l'app iOS l'affiche en interne seulement). Cette API le rend accessible en
-rejouant proprement l'appel que la zone de jeu web fait elle-même :
-`POST https://api.echecs.com/public/liveplay/top` avec les en-têtes applicatifs
-(`App-Site: SIM`, etc.) — **aucune authentification n'est requise** pour cet
-endpoint.
+Deux jeux supportés, avec **switch intégré** :
+
+| Jeu | Classements | Source (découverte) |
+|---|---|---|
+| ♟️ **SimpleChess** (Europe Echecs) | Bullet · Blitz · Rapid · Chess960 · Puzzle Battle | `POST https://api.echecs.com/public/liveplay/top` (REST, CORS ouvert, sans clé) |
+| ⚔️ **SocialChess** (Woodchop Software) | Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow | `wss://api.socialchess.com?x=ws` (frame binaire `\x00` + JSON, commandes `usersByRank` / `getUser`) |
+
+Fonctionnalités : classement en direct par mode, **filtre par pays**, recherche,
+**profil joueur** (tous ses Elo + rang mondial), **graphique d'évolution Elo**
+(SimpleChess – API officielle `eloChartData`), et un **panneau « Mon compte »**
+(préconfiguré sur votre pseudo : ILoveKaroline 🚀).
 
 ---
 
-## 📱 Version PWA installable
+## 🚀 La PWA (recommandée — aucun backend requis)
 
-L'app est une **PWA** : manifest + service worker + icônes. Utilisable dans le
-navigateur, installable sur l'écran d'accueil (bouton « Installer l'app ») et
-**consultable hors connexion** (la dernière copie du classement est mise en
-cache). `config.js` permet deux modes :
+Les deux API amont acceptent les requêtes **directement depuis le navigateur**
+(CORS ouvert REST pour SimpleChess, WebSocket pur pour SocialChess). Le projet
+est donc **100 % statique** : déployable sur GitHub Pages, Netlify, etc.
 
-| Mode | Description |
-|---|---|
-| `amont` (défaut) | La PWA appelle **directement** `api.echecs.com` (CORS ouvert, aucune clé) — **aucun backend requis**, hébergeable en statique |
-| `api` | La PWA passe par la FastAPI incluse (cache serveur + filtres) — renseigner `API_BASE` |
+```bash
+python3 -m http.server 8000      # ou tout serveur statique
+```
 
-### Déploiement GitHub Pages
+> ⚠️ Le WebSocket SocialChess nécessite HTTPS (wss) — sur `localhost` ça
+> fonctionne, sur un statique il faut un domaine HTTPS (GitHub Pages okay).
 
-1. Créez un dépôt public (ex. `simplechess-live`) sur GitHub (sans README).
-2. Poussez le contenu de ce dossier sur la branche `main`.
-3. Settings → Pages → **Deploy from a branch** → `main` / racine.
-4. L'app est en ligne sur `https://<user>.github.io/simplechess-live/` — et
-   installable en PWA (⚠️ mode `amont` uniquement ; le mode `api` n'a pas de
-   vrai serveur sur Pages).
+### Configurer (`config.js`)
 
-### Backend optionnel
+```js
+window.SC_CONFIG = {
+  API_MODE: "amont",            // "amont" (statique) | "api" (backend FastAPI)
+  API_BASE: "",                 // ex. "https://mon-api.up.railway.app" (mode api)
+  DEFAULT_GAME: "simplechess",  // jeu ouvert par défaut
+  MY_USERNAME: "ILoveKaroline", // votre compte SimpleChess (panneau stats)
+  MY_USERNAME_SC: "",           // votre pseudo SocialChess (optionnel)
+  AUTO_REFRESH_SEC: 60,
+};
+```
+
+## 🛠️ La FastAPI incluse (optionnelle : cache serveur, filtres, Swagger)
 
 ```bash
 pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8000   # doc : /docs
 ```
 
-Puis dans `config.js` : `API_MODE: "api"`, `API_BASE: "https://votre-api.url"`.
+| Endpoint | Description |
+|---|---|
+| `GET /api/leaderboard/{mode}?provider=simplechess` | Top SimpleChess (`bullet`, `blitz`, `standard`, `chess960`, `puzzlesbatl`) |
+| `GET /api/leaderboard/{mode}?provider=socialchess` | Top SocialChess (`Bullet`, `Blitz`, `Rapid`, `Chess960`, `Classical`, `Fast`, `Slow`) |
+| `GET /api/player/{username}` · `.../rating/{mode}` | Profil + Elo SimpleChess |
+| `GET /api/player/{username}/history/{mode}` | **Graphique d'évolution Elo** (mensuel, période 1Y) |
+| `GET /api/player/social/{user_id}` | Profil SocialChess (via WebSocket) |
+| `GET /api/modes` · `/api/health` | Métadonnées |
 
-## 📡 Endpoints de l'API
+Filtres communs : `limit` (1-100), `country`, `search`, `refresh`.
+Cache mémoire TTL 60 s + anti-stampede + anti-abus.
 
-### `GET /api/leaderboard/{mode}` — Top 100 mondial d'un mode
+---
 
-| Paramètre | Type | Défaut | Description |
-|---|---|---|---|
-| `mode` | path | — | `bullet` · `blitz` · `standard` (alias : `rapid`, `s`) · `chess960` (alias : `960`) · `puzzlesbatl` |
-| `limit` | query | `100` | 1 à 100 |
-| `country` | query | — | filtre code pays (ex. `FRA`) |
-| `search` | query | — | filtre pseudo |
-| `refresh` | query | `false` | force un re-fetch de l'API amont (min. 10 s entre deux forcages) |
+## 🔍 Comment ça a été découvert (résumé)
 
-```bash
-curl "http://localhost:8000/api/leaderboard/bullet"
-curl "http://localhost:8000/api/leaderboard/blitz?country=FRA&limit=20"
-curl "http://localhost:8000/api/leaderboard/standard?search=Gilles"
-```
+**SimpleChess** : le bundle de la zone de jeu (`europe-echecs.com/simplechess.html`
+→ `gamingzone.ts/dist/assets/index-*.js`) contient le module WebApi sur
+`https://api.echecs.com` avec les en-têtes applicatifs (`App-Site: SIM`,
+`App-Name: simplechessWeb`) ; `public/liveplay/top` renvoie la flatList du
+top 100 sans authentification (`refreshDelayMin: 60`).
 
-Réponse :
-
-```json
-{
-  "mode": "bullet",
-  "generated_at": 1757070000,
-  "upstream_refresh_delay_min": 60,
-  "count": 100,
-  "top": [
-    {
-      "rank": 1, "username": "Better67", "title": "", "country": "VAT",
-      "elo": 2416, "elo_best": 2416,
-      "wins": 80, "losses": 4, "draws": 0, "games": 84
-    }
-  ]
-}
-```
-
-### `GET /api/player/{username}` — Profil + tous les Elo d'un joueur
-
-```bash
-curl "http://localhost:8000/api/player/GillesLeGrand"
-```
-
-```json
-{
-  "username": "GillesLeGrand", "country": "USA", "seniority": 1,
-  "registration_date": "20200602", "last_connect_date": "20260904230439",
-  "avatar_url": "https://api.echecs.com/public/player/avatar/GillesLeGrand",
-  "ratings": [
-    { "type": "bullet", "elo": 2210, "elo_best": 2484, "rank": 5,
-      "rd": 50, "games": 26010, "wins": 22792, "losses": 2608, "draws": 610 }
-  ]
-}
-```
-
-### `GET /api/player/{username}/rating/{mode}` — Elo d'un joueur dans un mode
-
-### `GET /api/modes` — Modes disponibles · `GET /api/health` — État
-
-## 🏗️ Architecture
-
-```
-Navigateur / votre script
-        │  HTTP (JSON, CORS *)
-        ▼
-  main.py  (FastAPI)
-   ├── cache mémoire TTL 60 s par mode + anti-stampede (single-flight)
-   ├── anti-abus : forcage manuel limité à 1 / 10 s
-   └── httpx (async) ──► POST https://api.echecs.com/public/liveplay/top
-                          headers App-Site=SIM, App-Name=simplechessWeb, …
-```
-
-Les données amont ne changent en général que **toutes les ~60 min**
-(`refreshDelayMin` renvoyé par l'API), ce qui rend le cache très efficace.
+**SocialChess** : `socialchess.com` (Flutter web) → `main.dart.js` contient
+`wss://api.socialchess.com?x=ws` et les commandes (`usersByRank`, `getUser`,
+`login`…). Protocole : **message binaire préfixé `\x00`** + JSON, avec
+`wsId`, identif. `anonymous:"true"`, `build/version/deviceId/language/platform`,
+et un **`ping` obligatoire avant chaque commande**. Les réponses sont en JSON
+(`usersByRank` avec `statsBullet/statsBlitz/statsRapid/...`; `getUser` avec le
+profil complet, `rankPct`, `aoe`…). Le projet Firebase
+(`socialchess-4ea85.firebaseio.com`) est verrouillé (auth) — le WebSocket est
+la voie publique.
 
 ## ⚠️ À savoir
 
-- **Projet non officiel** : non affilié à Europe Echecs / SimpleChess. Le
-  contrat de l'API amont peut changer sans préavis (endpoints, en-têtes,
-  fréquences). Si un jour ça casse, c'est qu'Europe Echecs a modifié sa zone
-  de jeu — mettez à jour les constantes dans `main.py`.
-- **Soyez raisonnables** : ce projet est pensé pour un usage léger/consultatif.
-  Ne construisez pas un poller à haute fréquence ; le paramètre `refresh` est
-  volontairement limité.
-- Le classement est celui de la **compte global** (toutes périodes
-  confondues) — l'API amont ne permet pas de filtrer par période (7 jours,
-  mois, année).
-- L'app iOS et le web partagent le même backend : les Elo affichés ici sont
-  bien ceux du jeu SimpleChess.
-
-## 🧭 Comment ça a été trouvé (résumé de l'analyse)
-
-1. `https://www.europe-echecs.com/simplechess.html` charge un bundle JS
-   (`/common/applets/gamingzone.ts/dist/assets/index-*.js`).
-2. Le bundle contient `WebApi` avec `https://api.echecs.com` et la liste des
-   chemins (`public/liveplay/top`, `public/player/profile/stats/ratings`, …).
-3. Le client poste en JSON avec les en-têtes `App-Lang/App-Site/App-Platform/
-   App-Name/App-Version/App-Impl` + `Authorization: Bearer` (seulement si
-   connecté — inutile pour les endpoints publics).
-4. `public/liveplay/top` avec `{"type": "bullet"}` renvoie la flatList du top
-   100 mondial (`refreshDelayMin: 60`).
+- **Projet non officiel** : non affilié à Europe Echecs / Woodchop Software.
+  Les API amont peuvent changer à tout moment (mettre alors à jour les
+  constantes dans `index.html` / `main.py`).
+- **Usage raisonnable** : ne pas poller les API amont à haute fréquence.
+- SocialChess ne fournit pas d'historique Elo public → graphique uniquement
+  pour SimpleChess (données officielles du jeu : mensuel, période 1Y).
+- Le panneau « Mon compte » est lié à votre profil SimpleChess
+  (`config.js` → `MY_USERNAME`).
 
 ## 📁 Fichiers
 
-- `main.py` — l'API (FastAPI) : client amont, cache, endpoints.
-- `static/index.html` — tableau de bord de démonstration (auto-référentiel).
-- `requirements.txt` — dépendances.
+- `index.html` — **la PWA** (tout-en-un : UI + providers SimpleChess/SocialChess + graphique SVG)
+- `config.js` — configuration (mode amont/api, compte, auto-refresh)
+- `manifest.webmanifest` + `sw.js` + `static/icons/*` — PWA installable, hors-ligne
+- `main.py` + `requirements.txt` — l'API FastAPI optionnelle (cache, Swagger, proxy WS)
+- `README.md` — ce fichier

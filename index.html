@@ -3,123 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>SimpleChess Live — Classement en direct</title>
-<meta name="description" content="Classement mondial en direct de SimpleChess : bullet, blitz, rapide, chess960, puzzle battle.">
-<meta name="theme-color" content="#0f1419">
+<title>ChessLive — Classements échecs en direct</title>
+<meta name="description" content="Classements en direct SimpleChess & SocialChess : bullet, blitz, rapide, chess960, classique — stats joueur et graphique d'évolution Elo.">
+<meta name="theme-color" content="#0a0e13">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="./static/icons/icon-192.png">
 <link rel="apple-touch-icon" href="./static/icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SimpleChess Live">
+<meta name="apple-mobile-web-app-title" content="ChessLive">
 <script src="./config.js"></script>
 <style>
   :root{
-    --bg:#0f1419; --panel:#171e26; --panel2:#1d2630; --line:#2a3542;
-    --txt:#e8edf2; --dim:#8b98a5; --accent:#7fdb6a; --accent2:#3fa7d6;
-    --gold:#f2c94c; --red:#e5634d;
+    --bg:#0a0e13; --bg2:#0d1219; --panel:#121a22; --panel2:#16202b;
+    --line:#22303f; --line2:#2d3f52;
+    --txt:#eef4f8; --dim:#8fa0b0; --dim2:#66788a;
+    --green:#7fdb6a; --green2:#a4ec8f; --green-dark:#3fae4e;
+    --cyan:#3fa7d6; --gold:#f2c94c; --silver:#c9d6e2; --bronze:#d2955f;
+    --red:#e5634d;
+    --glow:0 0 18px rgba(127,219,106,.18);
   }
   *{box-sizing:border-box; margin:0; padding:0}
   html{height:100%}
-  body{background:var(--bg); color:var(--txt); font-family:"Segoe UI",system-ui,-apple-system,sans-serif; min-height:100vh}
-  .wrap{max-width:1060px; margin:0 auto; padding:28px 18px calc(40px + env(safe-area-inset-bottom))}
-  header{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:6px}
-  .logo{width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,#2e3d4d,#1d2630); display:flex; align-items:center; justify-content:center; font-size:28px; border:1px solid var(--line); flex-shrink:0}
-  h1{font-size:24px; font-weight:700; line-height:1.2}
-  h1 small{display:block; font-size:13px; font-weight:400; color:var(--dim); margin-top:2px}
-  .header-actions{margin-left:auto; display:flex; align-items:center; gap:8px}
-  .badge{display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); padding:8px 14px; border-radius:999px; font-size:13px; color:var(--dim)}
-  .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  .install-btn{display:none; align-items:center; gap:8px; background:linear-gradient(135deg,var(--accent2),#2d7fa8); color:#fff; border:none; padding:9px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(63,167,214,.35)}
+  body{
+    background:
+      radial-gradient(900px 480px at 18% -8%, rgba(127,219,106,.075), transparent 60%),
+      radial-gradient(800px 420px at 95% 12%, rgba(63,167,214,.06), transparent 60%),
+      var(--bg);
+    color:var(--txt); font-family:"Segoe UI",system-ui,-apple-system,sans-serif; min-height:100vh;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:26px 16px calc(46px + env(safe-area-inset-bottom))}
+  /* ---------- header ---------- */
+  header{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:14px}
+  .logo{
+    width:58px; height:58px; border-radius:16px; flex-shrink:0; position:relative;
+    background:linear-gradient(145deg,#1b2634,#10161e); border:1px solid var(--line2);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:var(--glow), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .logo svg{width:34px; height:34px}
+  .logo .live-dot{
+    position:absolute; right:-4px; top:-4px; width:15px; height:15px; border-radius:50%;
+    background:var(--green); border:3px solid var(--bg); box-shadow:0 0 10px var(--green);
+  }
+  h1{font-size:25px; font-weight:800; letter-spacing:.2px; line-height:1.15;
+     background:linear-gradient(90deg,#ffffff,var(--green2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
+  h1 small{display:block; font-size:12.5px; font-weight:500; color:var(--dim); letter-spacing:.3px; margin-top:3px;
+            -webkit-text-fill-color:var(--dim)}
+  .header-actions{margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .install-btn{display:none; align-items:center; gap:7px; background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:#08210a; border:none; padding:10px 16px; border-radius:999px; font-size:13px; font-weight:800; cursor:pointer;
+    box-shadow:0 4px 16px rgba(127,219,106,.30)}
   .install-btn.show{display:inline-flex}
-  .tabs{display:flex; gap:8px; margin:22px 0 14px; flex-wrap:wrap}
-  .tab{background:var(--panel); border:1px solid var(--line); color:var(--dim); padding:9px 16px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; transition:.15s}
-  .tab:hover{color:var(--txt); border-color:#3d4c5c}
-  .tab.active{background:var(--accent2); border-color:var(--accent2); color:#0d1117}
+  .badge{display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line);
+    padding:8px 14px; border-radius:999px; font-size:12.5px; color:var(--dim)}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s infinite}
+  .dot.off{background:var(--red); box-shadow:none; animation:none}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .account-btn{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:9px 15px;
+    border-radius:999px; cursor:pointer; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:8px}
+  .account-btn:hover{border-color:var(--green); box-shadow:var(--glow)}
+  .account-btn .mini-ava{width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,var(--green-dark),var(--cyan));
+    display:inline-flex; align-items:center; justify-content:center; font-size:11px; color:#04120a; font-weight:800}
+  /* ---------- switch de jeu ---------- */
+  .game-switch{display:flex; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:5px; gap:5px; margin-bottom:16px; width:fit-content}
+  .game-switch button{background:transparent; border:none; color:var(--dim); padding:11px 20px; border-radius:10px;
+    cursor:pointer; font-size:14px; font-weight:700; display:flex; align-items:center; gap:9px; transition:.15s}
+  .game-switch button .g-icon{font-size:17px}
+  .game-switch button.active{background:linear-gradient(135deg,#1e2c3c,#17222e); color:var(--txt); box-shadow:inset 0 0 0 1px var(--line2), 0 2px 10px rgba(0,0,0,.35)}
+  .game-switch button.active .tag{background:var(--green); color:#08210a}
+  .game-switch .tag{font-size:10px; font-weight:800; background:var(--line); color:var(--dim); padding:2px 7px; border-radius:6px; letter-spacing:.4px}
+  /* ---------- onglets ---------- */
+  .tabs{display:flex; gap:8px; margin:4px 0 14px; flex-wrap:wrap}
+  .tab{background:var(--panel); border:1px solid var(--line); color:var(--dim); padding:9px 16px; border-radius:12px;
+    cursor:pointer; font-size:13.5px; font-weight:700; transition:.15s}
+  .tab:hover{color:var(--txt); border-color:var(--line2)}
+  .tab.active{background:linear-gradient(135deg,rgba(127,219,106,.16),rgba(63,167,214,.10));
+    border-color:var(--green); color:var(--green2); box-shadow:var(--glow)}
+  /* ---------- toolbar ---------- */
   .toolbar{display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap}
-  .toolbar input{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:9px 14px; border-radius:10px; font-size:14px; min-width:220px; outline:none; flex:1; max-width:340px}
-  .toolbar input:focus{border-color:var(--accent2)}
-  .toolbar label{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--dim); cursor:pointer; user-select:none}
-  .refresh-btn{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:9px 14px; border-radius:10px; cursor:pointer; font-size:13px}
-  .refresh-btn:hover{border-color:var(--accent2)}
-  .update{color:var(--dim); font-size:12px}
-  table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden}
-  thead th{background:var(--panel2); text-align:left; padding:12px 14px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); border-bottom:1px solid var(--line)}
-  tbody td{padding:11px 14px; border-bottom:1px solid #212b36; font-size:14px}
+  .toolbar input[type=search]{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:10px 14px;
+    border-radius:12px; font-size:13.5px; min-width:200px; outline:none; flex:1; max-width:330px}
+  .toolbar input[type=search]:focus{border-color:var(--green)}
+  .toolbar select{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:10px 12px;
+    border-radius:12px; font-size:13.5px; outline:none; cursor:pointer; max-width:190px}
+  .toolbar label{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--dim); cursor:pointer; user-select:none}
+  .refresh-btn{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:10px 14px; border-radius:12px;
+    cursor:pointer; font-size:13px; font-weight:700}
+  .refresh-btn:hover{border-color:var(--green); color:var(--green2)}
+  .update{color:var(--dim2); font-size:12px; margin-left:auto}
+  /* ---------- tableau ---------- */
+  .table-card{background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.30)}
+  table{width:100%; border-collapse:collapse}
+  thead th{background:var(--panel2); text-align:left; padding:13px 15px; font-size:11px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--dim2); border-bottom:1px solid var(--line)}
+  tbody td{padding:12px 15px; border-bottom:1px solid #1a2632; font-size:14px}
   tbody tr:last-child td{border-bottom:none}
-  tbody tr:hover{background:#1d2733}
+  tbody tr:hover{background:#1a2531}
   tbody tr.clickable{cursor:pointer}
-  .rank{font-weight:700; color:var(--dim); width:64px}
-  tr.top1 .rank, tr.top1 .name{color:var(--gold)}
-  tr.top2 .rank{color:#c9d6e2} tr.top3 .rank{color:#d2955f}
-  .name{font-weight:700}
-  .elo{font-weight:700; color:var(--accent)}
-  .sub{color:var(--dim); font-size:12px}
-  .flag{font-size:15px; margin-right:6px}
-  .nav{display:flex; justify-content:space-between; margin-top:14px; font-size:13px; color:var(--dim); flex-wrap:wrap; gap:6px}
-  .msg{padding:30px; text-align:center; color:var(--dim)}
-  footer{margin-top:34px; font-size:12px; color:var(--dim); line-height:1.7; border-top:1px solid var(--line); padding-top:16px}
-  footer code{background:var(--panel); padding:1px 6px; border-radius:5px; font-size:11px}
-  /* Panneau joueur */
-  .player-panel{margin:0 0 16px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:0; overflow:hidden; display:none}
-  .player-panel.show{display:block}
-  .player-head{display:flex; align-items:center; gap:14px; padding:16px 18px; background:var(--panel2); flex-wrap:wrap}
-  .avatar{width:52px; height:52px; border-radius:50%; background:#253242; display:flex; align-items:center; justify-content:center; font-size:26px; overflow:hidden; flex-shrink:0}
+  .rank{font-weight:800; color:var(--dim); width:60px}
+  tr.top1 .rank{color:var(--gold)} tr.top2 .rank{color:var(--silver)} tr.top3 .rank{color:var(--bronze)}
+  tr.top1 td{background:rgba(242,201,76,.045)}
+  .name{font-weight:700; white-space:nowrap; max-width:240px; overflow:hidden; text-overflow:ellipsis}
+  .elo{font-weight:800; color:var(--green)}
+  .sub{color:var(--dim2); font-size:12px}
+  .flag{font-size:16px; margin-right:7px; vertical-align:-2px}
+  .msg{padding:34px; text-align:center; color:var(--dim)}
+  .nav{display:flex; justify-content:space-between; margin-top:14px; font-size:12.5px; color:var(--dim2); flex-wrap:wrap; gap:6px}
+  /* ---------- panneaux ---------- */
+  .panel{margin:0 0 16px; background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; display:none; box-shadow:0 10px 30px rgba(0,0,0,.30)}
+  .panel.show{display:block}
+  .panel-head{display:flex; align-items:center; gap:14px; padding:17px 19px; background:linear-gradient(135deg,var(--panel2),#141d27); flex-wrap:wrap; border-bottom:1px solid var(--line)}
+  .avatar{width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#1d2b3a,#111923);
+    display:flex; align-items:center; justify-content:center; font-size:27px; overflow:hidden; flex-shrink:0; border:1px solid var(--line2)}
   .avatar img{width:100%; height:100%; object-fit:cover}
-  .player-head h2{font-size:19px}
-  .player-head .sub{margin-top:2px}
-  .player-close{margin-left:auto; background:none; border:1px solid var(--line); color:var(--dim); width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:15px}
-  .player-close:hover{color:var(--txt)}
-  .mini-ratings{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:16px 18px}
-  .mini-card{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
-  .mini-card .m-title{font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.05em}
-  .mini-card .m-elo{font-size:22px; font-weight:800; color:var(--accent); margin:4px 0 2px}
-  .mini-card .m-meta{font-size:11px; color:var(--dim)}
-  @media (max-width:640px){
+  .panel-head h2{font-size:19px; font-weight:800}
+  .panel-head .sub{margin-top:2px; color:var(--dim); font-size:12.5px}
+  .panel-close{margin-left:auto; background:none; border:1px solid var(--line); color:var(--dim); width:34px; height:34px;
+    border-radius:10px; cursor:pointer; font-size:15px}
+  .panel-close:hover{color:var(--txt); border-color:var(--line2)}
+  .stats-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:11px; padding:17px 19px}
+  .stat-card{background:var(--panel2); border:1px solid var(--line); border-radius:14px; padding:13px 15px; cursor:pointer; transition:.15s}
+  .stat-card:hover{border-color:var(--green); box-shadow:var(--glow)}
+  .stat-card.selected{border-color:var(--green); box-shadow:var(--glow); background:rgba(127,219,106,.06)}
+  .stat-card .m-title{font-size:11px; color:var(--dim2); text-transform:uppercase; letter-spacing:.06em; font-weight:700}
+  .stat-card .m-elo{font-size:23px; font-weight:800; color:var(--green); margin:5px 0 3px}
+  .stat-card .m-meta{font-size:11px; color:var(--dim2); line-height:1.5}
+  .stat-card .m-rank{display:inline-block; margin-top:6px; font-size:10.5px; font-weight:800; background:rgba(63,167,214,.14);
+    color:var(--cyan); padding:2px 8px; border-radius:6px}
+  .chart-block{padding:6px 19px 20px}
+  .chart-block h3{font-size:13px; color:var(--dim); text-transform:uppercase; letter-spacing:.07em; margin:8px 0 12px; display:flex; align-items:center; gap:10px}
+  .chart-block h3 .delta{font-size:11px; padding:3px 9px; border-radius:8px; font-weight:800; letter-spacing:0}
+  .delta.up{background:rgba(127,219,106,.13); color:var(--green2)}
+  .delta.down{background:rgba(229,99,77,.13); color:#f0927f}
+  .delta.flat{background:rgba(143,160,176,.13); color:var(--dim)}
+  .svg-chart{width:100%; height:auto; display:block}
+  .chart-note{font-size:11.5px; color:var(--dim2); margin-top:8px}
+  /* ---------- footer ---------- */
+  footer{margin-top:32px; font-size:12px; color:var(--dim2); line-height:1.75; border-top:1px solid var(--line); padding-top:16px}
+  footer code{background:var(--panel); padding:1px 6px; border-radius:6px; font-size:11px; color:var(--dim)}
+  footer b{color:var(--dim)}
+  @media (max-width:680px){
     h1{font-size:20px} .badge{display:none}
-    .toolbar input{max-width:100%}
-    thead th:nth-child(5), tbody td:nth-child(5),
-    thead th:nth-child(9), tbody td:nth-child(9){display:none}
+    .game-switch{width:100%} .game-switch button{flex:1; justify-content:center; padding:11px 8px; font-size:13px}
+    .toolbar input[type=search]{max-width:100%}
+    thead th:nth-child(5), tbody td:nth-child(5), thead th:nth-child(9), tbody td:nth-child(9){display:none}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">♞</div>
-    <h1>SimpleChess Live
-      <small>Classement mondial en direct · bullet · blitz · rapide · 960 · puzzle battle</small>
-    </h1>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M6 21h10M6 18h8M5.5 5.5C5.5 3 8 1.5 10.5 1.8c2.4.3 4.2 2 4.6 4.3.5 2.6-.3 4.4-1.3 6.2-.8 1.5-1.3 2.7-1.3 4.7h-4c0-2.2-.5-3.6-1.4-5.2C6.1 10 5.5 7.8 5.5 5.5Z" fill="#eef4f8"/><circle cx="10" cy="5" r="1" fill="#0a0e13"/><path d="M15.5 6.5h2.2a2.3 2.3 0 0 1 0 4.6h-1.2l2.7 3.4h-3l-2.4-3.2" stroke="#7fdb6a" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg>
+      <span class="live-dot"></span>
+    </div>
+    <h1>ChessLive<small>Classements en direct — SimpleChess · SocialChess · Elo &amp; stats</small></h1>
     <div class="header-actions">
-      <button class="install-btn" id="installBtn">⬇️ Installer l'app</button>
-      <div class="badge"><span class="dot"></span> <span id="status">chargement…</span></div>
+      <button class="account-btn" id="accountBtn"><span class="mini-ava">👤</span><span id="accountName">Mon compte</span></button>
+      <button class="install-btn" id="installBtn">⬇️ Installer</button>
+      <div class="badge"><span class="dot" id="statusDot"></span> <span id="status">chargement…</span></div>
     </div>
   </header>
 
+  <div class="game-switch" id="gameSwitch"></div>
   <div class="tabs" id="tabs"></div>
 
-  <div class="player-panel" id="playerPanel"></div>
+  <div class="panel" id="playerPanel"></div>
+  <div class="panel" id="accountPanel"></div>
 
   <div class="toolbar">
-    <input id="search" type="search" placeholder="Filtrer par pseudo…">
+    <input id="search" type="search" placeholder="Rechercher un joueur…">
+    <select id="countryFilter"><option value="">🌍 Tous les pays</option></select>
     <label><input type="checkbox" id="auto"> Auto (60 s)</label>
     <button class="refresh-btn" id="refresh">↻ Actualiser</button>
     <span class="update" id="update"></span>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th style="width:64px">#</th><th>Joueur</th><th>Pays</th>
-        <th style="text-align:right">Elo</th><th style="text-align:right">Elo max</th>
-        <th style="text-align:right">V</th><th style="text-align:right">D</th>
-        <th style="text-align:right">N</th><th style="text-align:right">Parties</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"><tr><td colspan="9" class="msg">Chargement du classement…</td></tr></tbody>
-  </table>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">#</th><th>Joueur</th><th>Pays</th>
+          <th style="text-align:right">Elo</th><th style="text-align:right">Elo max</th>
+          <th style="text-align:right">V</th><th style="text-align:right">D</th>
+          <th style="text-align:right">N</th><th style="text-align:right">Parties</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"><tr><td colspan="9" class="msg">Chargement du classement…</td></tr></tbody>
+    </table>
+  </div>
 
   <div class="nav">
     <span id="count"></span>
@@ -127,202 +201,534 @@
   </div>
 
   <footer>
-    ⚠️ Projet non officiel — non affilié à Europe Echecs / SimpleChess. Données issues de l'API publique de la zone de jeu
-    (api.echecs.com, CORS ouvert) et mises en cache par le service worker : consultables hors connexion après la première visite.
-    <br>Déploiement : <code>config.js</code> (mode direct ou via l'API FastAPI incluse) · API non officielle : <code>/api/leaderboard/{mode}</code> · <code>/api/player/{pseudo}</code>
+    <b>ChessLive</b> — projet non officiel, non affilié à Europe Echecs / SimpleChess ni à Woodchop Software / SocialChess.
+    Données : API publique SimpleChess (api.echecs.com) et WebSocket SocialChess (api.socialchess.com), mises en cache localement.
+    <br>Modes disponibles : SimpleChess <code>bullet · blitz · standard · chess960 · puzzlesbatl</code> ·
+    SocialChess <code>Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow</code> · Docs API : <code>/docs</code>
   </footer>
 </div>
 
 <script>
-/* ----- config (peut être surchargée par config.js) ----- */
-const CFG = Object.assign(
-  { API_MODE:"amont", API_BASE:"", AUTO_REFRESH_SEC:60 },
-  (window.SC_CONFIG || {})
-);
+/* =========================================================
+   CONFIGURATION
+   ========================================================= */
+const CFG = Object.assign({
+  API_MODE:"amont", API_BASE:"", DEFAULT_GAME:"simplechess",
+  MY_USERNAME:"ILoveKaroline", MY_USERNAME_SC:"", AUTO_REFRESH_SEC:60
+}, window.SC_CONFIG || {});
 
-const UPSTREAM = "https://api.echecs.com";
-const UPSTREAM_HEADERS = {
-  "Content-Type":"application/json","Accept":"application/json",
-  "App-Lang":"EN","App-Site":"SIM","App-Platform":"website",
-  "App-Name":"simplechessWeb","App-Version":"5.5.41","App-Impl":"1"
+/* =========================================================
+   DÉCLARATION DES JEUX (providers)
+   ========================================================= */
+const M_ICONS = {bullet:"🚀", blitz:"⚡", standard:"🕒", chess960:"🎲", puzzlesbatl:"🧩",
+                 Bullet:"🚀", Blitz:"⚡", Rapid:"🕒", Chess960:"🎲", Classical:"🏛", Fast:"🔥", Slow:"📮"};
+
+const GAMES = {
+  simplechess: {
+    name:"SimpleChess", icon:"♟️", tag:"SC",
+    modes:[["bullet","Bullet"],["blitz","Blitz"],["standard","Rapid"],["chess960","Chess960"],["puzzlesbatl","Puzzle Battle"]],
+    rateKey:"elo", // nom du champ elo dans le top
+  },
+  socialchess: {
+    name:"SocialChess", icon:"⚔️", tag:"SCo",
+    modes:[["Bullet","Bullet"],["Blitz","Blitz"],["Rapid","Rapid"],["Chess960","Chess960"],["Classical","Classical"],["Fast","Fast"],["Slow","Slow"]],
+    rateKey:"e",
+  },
 };
-const MODES = [
-  {id:"bullet",label:"Bullet",icon:"🚀"},
-  {id:"blitz",label:"Blitz",icon:"⚡"},
-  {id:"standard",label:"Rapid",icon:"🕒"},
-  {id:"chess960",label:"Chess960",icon:"🎲"},
-  {id:"puzzlesbatl",label:"Puzzle Battle",icon:"🧩"},
-];
-const UPSTREAM_TYPE = {bullet:"bullet",blitz:"blitz",standard:"standard",chess960:"960",puzzlesbatl:"puzzlesbatl"};
-const FLAGS = {VAT:"🇻🇦",FRA:"🇫🇷",USA:"🇺🇸",ESP:"🇪🇸",ALB:"🇦🇱",ARG:"🇦🇷",SWE:"🇸🇪",BHR:"🇧🇭",GEO:"🇬🇪",BLZ:"🇧🇿",FID:"🌍"};
-const flag = c => FLAGS[(c||"").toUpperCase()] || "🏳️";
 
-let currentMode = new URLSearchParams(location.search).get("mode") || "bullet";
-if(!MODES.some(m=>m.id===currentMode)) currentMode = "bullet";
-let timer = null;
-let lastPlayers = [];
-
+/* =========================================================
+   HELPERS GÉNÉRIQUES
+   ========================================================= */
 const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-/* ---------- appels de données ---------- */
-async function postUpstream(path, body){
-  const r = await fetch(UPSTREAM + path, {method:"POST", headers:UPSTREAM_HEADERS, body:JSON.stringify(body)});
-  if(!r.ok) throw new Error("HTTP "+r.status+" (amont)");
-  const j = await r.json();
-  if(!j.success) throw new Error(j.error?.text || "Erreur amont");
-  return j.data;
-}
-const flatToObjects = flat => {
-  const fields = flat.fields || [], out = [];
-  (flat.values||[]).forEach(row => out.push(Object.fromEntries(fields.map((f,i)=>[f,row[i]]))));
-  return out;
+const ISO3 = {FRA:"FR",USA:"US",ESP:"ES",VAT:"VA",ITA:"IT",GER:"DE",GBR:"GB",ENG:"GB",BRA:"BR",POR:"PT",RUS:"RU",UKR:"UA",TUR:"TR",IND:"IN",CHN:"CN",JPN:"JP",MEX:"MX",NED:"NL",POL:"PL",GRE:"GR",SWE:"SE",NOR:"NO",FIN:"FI",DEN:"DK",BEL:"BE",SUI:"CH",AUT:"AT",CAN:"CA",ARG:"AR",ALB:"AL",BHR:"BH",GEO:"GE",BLZ:"BZ",COL:"CO",CHI:"CL",PER:"PE",URU:"UY",VEN:"VE",EGY:"EG",MAR:"MA",TUN:"TN",ALG:"DZ",SEN:"SN",CIV:"CI",CMR:"CM",NGA:"NG",RSA:"ZA",IRN:"IR",IRQ:"IQ",ISR:"IL",SAU:"SA",QAT:"QA",UAE:"AE",PAK:"PK",BAN:"BD",PHI:"PH",VIE:"VN",THA:"TH",IDN:"ID",MYS:"MY",SGP:"SG",KOR:"KR",HKG:"HK",TWN:"TW",AUS:"AU",NZL:"NZ",IRL:"IE",CRO:"HR",SRB:"RS",HUN:"HU",CZE:"CZ",SVK:"SK",ROU:"RO",BUL:"BG",LIT:"LT",LAT:"LV",EST:"EE",SLO:"SI",LUX:"LU",MON:"MC",AND:"AD",MLT:"MT",CYP:"CY",ARM:"AM",AZE:"AZ",KAZ:"KZ",UZB:"UZ",PRY:"PY",BOL:"BO",ECU:"EC",CRC:"CR",PAN:"PA",GUA:"GT",DOM:"DO",CUB:"CU",HAI:"HT",JAM:"JM",ETH:"ET",KEN:"KE",GHA:"GH",MAD:"MG",MOZ:"MZ",ANG:"AO",COD:"CD",BFA:"BF",TGO:"TG",BEN:"BJ",GAB:"GA",RWA:"RW",UGA:"UG",ZIM:"ZW",ZAM:"ZM",FID:null};
+const flagEmoji = cc => {
+  if(!cc) return "🏳️";
+  cc = String(cc).toUpperCase();
+  if(cc.length === 2) return String.fromCodePoint(0x1F1E6 + cc.charCodeAt(0)-65, 0x1F1E6 + cc.charCodeAt(1)-65);
+  const c2 = ISO3[cc];
+  if(c2) return String.fromCodePoint(0x1F1E6 + c2.charCodeAt(0)-65, 0x1F1E6 + c2.charCodeAt(1)-65);
+  return "🏳️";
 };
 
-async function fetchLeaderboard(mode){
-  if(CFG.API_MODE === "api"){
-    const r = await fetch(CFG.API_BASE + "/api/leaderboard/" + mode);
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    const j = await r.json();
-    return {rows:j.top, source:"API non officielle ("+CFG.API_BASE+")"};
+/* =========================================================
+   PROVIDER 1 — SIMPLECHESS (REST, CORS ouvert)
+   ========================================================= */
+const SC_UP = "https://api.echecs.com";
+const SC_HEADERS = {"Content-Type":"application/json","Accept":"application/json",
+  "App-Lang":"EN","App-Site":"SIM","App-Platform":"website","App-Name":"simplechessWeb",
+  "App-Version":"5.5.41","App-Impl":"1"};
+const SC_TYPE = {bullet:"bullet", blitz:"blitz", standard:"standard", chess960:"960", puzzlesbatl:"puzzlesbatl"};
+
+async function scPost(path, body){
+  const r = await fetch(SC_UP + path, {method:"POST", headers:SC_HEADERS, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("HTTP "+r.status+" (SimpleChess)");
+  const j = await r.json();
+  if(!j.success) throw new Error(j.error?.text || "Erreur SimpleChess");
+  return j.data;
+}
+const scFlat = flat => {
+  const f = flat.fields||[], out=[];
+  (flat.values||[]).forEach(row => out.push(Object.fromEntries(f.map((k,i)=>[k,row[i]]))));
+  return out;
+};
+const SimpleChess = {
+  async leaderboard(mode){
+    if(CFG.API_MODE==="api") return apiModeLeaderboard("simplechess", mode);
+    const d = await scPost("/public/liveplay/top", {type:SC_TYPE[mode]});
+    return {rows: scFlat(d.flatList||{}).map(p=>({
+      id:p.username, name:p.username, country:p.country||"", elo:+p.elo, eloBest:+p.eloBest,
+      wins:+p.wins, losses:+p.losses, draws:+p.draws, games:+p.total, rank:+p.rank,
+      title:p.title||"", extras:{}
+    })), source:"api.echecs.com"};
+  },
+  async player(username){
+    if(CFG.API_MODE==="api") return apiModePlayer("simplechess", username);
+    const prof = await scPost("/public/player/profile/get", {username});
+    if(!prof.username) throw new Error("Joueur introuvable");
+    const ratings = await scPost("/public/player/profile/stats/ratings", {username});
+    const rows = scFlat(ratings.flatList||{});
+    const maxElo = rows.reduce((m,r)=>Math.max(m,+r.elo||0),0);
+    return {
+      id:username, name:prof.username, country:prof.country||"", avatar:null,
+      extra:"Inscrit le "+(prof.registrationDate||"?")+" · XP "+(prof.xpLevel||"?"),
+      maxElo,
+      ratings: rows.map(r=>({mode:(r.type==="960"?"chess960":r.type), label:(M_ICONS[r.type==="960"?"chess960":r.type]||"♟")+" "+(r.type==="960"?"Chess960":r.type),
+        elo:+r.elo, eloBest:+r.eloBest, rank:+r.rank, games:+r.games, wins:+r.wins, losses:+r.losses, draws:+r.draws})),
+    };
+  },
+  async history(username, mode, period="1Y"){
+    if(CFG.API_MODE==="api") return apiModeHistory("simplechess", username, mode);
+    const d = await scPost("/public/player/profile/stats/advanced",
+      {username, type:SC_TYPE[mode], period, withEloChart:true, withOpeningsChart:false, withOpeningsV2:false});
+    const c = d.eloChartData||{};
+    const s = d.stats||{};
+    return {
+      labels:c.labels||[], values:(c.values||[]).map(Number),
+      trend:d.eloTrend||"", games:s.games||0, wins:s.wins||0, losses:s.losses||0, draws:s.draws||0,
+      eloMin:s.eloMin||0, eloMax:s.eloMax||0, oppAvg:s.oppEloAvg||0, lastGame:s.lastGameDate||"",
+      note:"Évolution mensuelle (source officielle)"
+    };
   }
-  const data = await postUpstream("/public/liveplay/top", {type:UPSTREAM_TYPE[mode]});
-  const rows = flatToObjects(data.flatList||{}).map(p=>({
-    rank:+p.rank, username:p.username, title:p.title||"", country:p.country||"",
-    elo:+p.elo, elo_best:+p.eloBest, wins:+p.wins, losses:+p.losses,
-    draws:+p.draws, games:+p.total
-  }));
-  return {rows, source:"api.echecs.com (données officielles)"};
+};
+
+/* =========================================================
+   PROVIDER 2 — SOCIALCHESS (WebSocket binaire \x00 + JSON)
+   ========================================================= */
+const SocialChessWS = {
+  ws:null, wsId:0, pending:new Map(), readyResolvers:[], closed:true, booted:false,
+  connect(){
+    if(this.ws && this.ws.readyState===1) return;
+    try{
+      this.ws = new WebSocket("wss://api.socialchess.com?x=ws");
+      this.ws.binaryType = "arraybuffer";
+    }catch(e){ console.error("WS", e); return; }
+    this.closed = false;
+    this.ws.onclose = () => {
+      this.closed = true;
+      this.pending.forEach(cb => cb({error:"closed"}));
+      this.pending.clear();
+      // libère les attentes de connexion
+      this.readyResolvers.forEach(r=>r()); this.readyResolvers=[];
+      setTimeout(()=>this.connect(), 4000);
+    };
+    this.ws.onerror = () => {};
+    this.ws.onopen = () => {
+      this.readyResolvers.forEach(r=>r()); this.readyResolvers=[];
+      if(!this.booted){ this.booted = true; this.request("liveFastGamesList", {topGamesLimit:1}).catch(()=>{}); }
+    };
+    this.ws.onmessage = ev => {
+      let text = null;
+      if(typeof ev.data === "string") text = ev.data;
+      else if(ev.data instanceof ArrayBuffer) text = new TextDecoder().decode(new Uint8Array(ev.data));
+      if(!text || text === ".") return;
+      try{
+        const j = JSON.parse(text);
+        if(j && j.wsId != null && this.pending.has(j.wsId)){
+          const cb = this.pending.get(j.wsId);
+          this.pending.delete(j.wsId);
+          cb(j);
+        }
+      }catch(e){}
+    };
+  },
+  _id(fallback){
+    try{
+      let id = localStorage.getItem("chesslive-device");
+      if(!id){ id = Array.from(crypto.getRandomValues(new Uint8Array(10)), b=>b.toString(16).padStart(2,"0")).join(""); localStorage.setItem("chesslive-device", id); }
+      return id;
+    }catch(e){ return fallback; }
+  },
+  async request(command, extra={}, timeout=12000){
+    if(!this.ws || this.ws.readyState !== 1){
+      await new Promise((res, rej)=>{
+        this.readyResolvers.push(res);
+        this.connect();
+        setTimeout(()=>rej(new Error("WebSocket SocialChess : connexion impossible")), 9000);
+      });
+    }
+    if(!this.ws || this.ws.readyState !== 1) throw new Error("WebSocket SocialChess indisponible");
+    const wsId = ++this.wsId;
+    const payload = Object.assign({
+      command, wsId,
+      anonymous:"true", build:"856", version:"2026.04.2.856.web",
+      deviceId:this._id("chesslive"), language:"fr", platform:"web"
+    }, extra);
+    // frame BINAIRE : \x00 + JSON (comme l'app Flutter)
+    const buf = new TextEncoder().encode("\x00" + JSON.stringify(payload));
+    return new Promise((resolve)=>{
+      this.pending.set(wsId, resolve);
+      try{ this.ws.send(buf); }catch(e){ this.pending.delete(wsId); resolve({error:"send"}); }
+      setTimeout(()=>{ if(this.pending.has(wsId)){ this.pending.delete(wsId); resolve({error:"timeout"}); } }, timeout);
+    });
+  },
+  async ask(command, extra){
+    // le serveur exige un ping avant chaque commande utile
+    await this.request("ping");
+    return await this.request(command, extra);
+  }
+};
+
+const SocialChess = {
+  async leaderboard(category){
+    if(CFG.API_MODE==="api") return apiModeLeaderboard("socialchess", category);
+    const j = await SocialChessWS.ask("usersByRank", {nearElo:"3000", ascending:"false", category});
+    if(j.error || !j.usersByRank) throw new Error("Classement SocialChess indisponible");
+    const rows = j.usersByRank.map((p,i)=>({
+      id:p.id, name:p.username||p.id, country:p.countryCode||"",
+      elo:+(p["stats"+category]||{}).e||0, eloBest:+(p["stats"+category]||{}).he||0,
+      wins:+(p["stats"+category]||{}).w||0, losses:+(p["stats"+category]||{}).l||0,
+      draws:+(p["stats"+category]||{}).d||0,
+      games:+((p["stats"+category]||{}).w||0)+ +((p["stats"+category]||{}).l||0)+ +((p["stats"+category]||{}).d||0),
+      rank:p["stats"+category]?.rank || i+1, title:"", raw:p
+    }));
+    return {rows, source:"api.socialchess.com (WebSocket)", hi:j.highestElo, lo:j.lowestElo};
+  },
+  async player(userId, rankRow){
+    if(CFG.API_MODE==="api") return apiModePlayer("socialchess", userId);
+    const j = await SocialChessWS.ask("getUser", {getUserIds:[userId], includeStats:"true"});
+    let u;
+    if(j.users && j.users[0]) u = j.users[0];
+    else if(rankRow) u = rankRow.raw;
+    if(!u) throw new Error("Joueur introuvable");
+    const labels = {Bullet:["bullet","🚀 Bullet"],Blitz:["blitz","⚡ Blitz"],Rapid:["standard","🕒 Rapid"],Chess960:["chess960","🎲 Chess960"],Classical:["classical","🏛 Classique"],Fast:["fast","🔥 Rapide"],Slow:["slow","📮 Lente"]};
+    const ratings = Object.entries(labels)
+      .map(([scKey,[mode,label]])=>({mode, label, s:(u["stats"+scKey]||{})}))
+      .filter(r=>r.s.e != null)
+      .map(r=>({mode:r.mode, label:r.label, elo:r.s.e, eloBest:r.s.he||0, rank:r.s.rank||0, games:(r.s.w||0)+(r.s.l||0)+(r.s.d||0), wins:r.s.w||0, losses:r.s.l||0, draws:r.s.d||0}));
+    const maxElo = ratings.reduce((m,r)=>Math.max(m,r.elo||0),0);
+    return {
+      id:u.id, name:u.username||u.id, country:u.countryCode||"",
+      avatar:(u.profileImageName ? "https://s3.amazonaws.com/chess-profile-images/lrg-"+u.profileImageName : null),
+      extra:(u.city?u.city+" · ":"")+"Inscrit "+(u.created? String(u.created).slice(0,10):"?")+(u.birthDate? " · né "+String(u.birthDate).slice(0,10):""),
+      maxElo, ratings
+    };
+  }
+};
+
+/* ---------- mode "api" (backend FastAPI) ---------- */
+async function apiModeLeaderboard(game, mode){
+  const r = await fetch(`${CFG.API_BASE}/api/leaderboard/${mode}${game==="socialchess"?"?provider=socialchess":""}`);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const j = await r.json();
+  return {rows:j.top, source:CFG.API_BASE};
+}
+async function apiModePlayer(game, id){
+  const r = await fetch(`${CFG.API_BASE}/api/player/${encodeURIComponent(id)}`);
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.detail||"erreur");
+  return {id:j.username, name:j.username, country:j.country||"", avatar:null, maxElo:0,
+    extra:"", ratings:(j.ratings||[]).map(x=>({mode:x.type, label:x.type, elo:x.elo, eloBest:x.elo_best, rank:x.rank, games:x.games, wins:x.wins, losses:x.losses, draws:x.draws}))};
+}
+async function apiModeHistory(game, user, mode){
+  const r = await fetch(`${CFG.API_BASE}/api/player/${encodeURIComponent(user)}/history/${mode}`);
+  const j = await r.json();
+  if(!r.ok) throw new Error(j.detail||"erreur");
+  return {labels:j.labels||[], values:j.values||[], trend:"", games:0, wins:0, losses:0, draws:0, note:"", eloMin:0, eloMax:0, oppAvg:0, lastGame:""};
 }
 
-async function fetchPlayer(username){
-  if(CFG.API_MODE === "api"){
-    const r = await fetch(CFG.API_BASE + "/api/player/" + encodeURIComponent(username));
-    if(r.status===404) throw new Error("Joueur introuvable");
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return await r.json();
-  }
-  const prof = await postUpstream("/public/player/profile/get", {username});
-  if(!prof.username) throw new Error("Joueur introuvable");
-  const data = await postUpstream("/public/player/profile/stats/ratings", {username});
-  const ratings = flatToObjects(data.flatList||{}).map(r=>({
-    type:r.type, elo:+r.elo, elo_best:+r.eloBest, rank:+r.rank,
-    games:+r.games, wins:+r.wins, losses:+r.losses, draws:+r.draws
-  }));
-  return {username:prof.username, country:prof.country||"", ratings};
+/* =========================================================
+   ÉTAT & UI
+   ========================================================= */
+const params = new URLSearchParams(location.search);
+let state = {
+  game: GAMES[params.get("game")] ? params.get("game") : (GAMES[CFG.DEFAULT_GAME]?CFG.DEFAULT_GAME:"simplechess"),
+  mode: null,
+  rows: [], source:"",
+};
+if(params.get("mode")) state.mode = params.get("mode");
+else if(params.get("category")) state.mode = categoryToMode(params.get("category"));
+else state.mode = GAMES[state.game].modes[0][0];
+
+function categoryToMode(cat){ return cat; } // SocialChess : catégorie = mode
+const curGame = () => GAMES[state.game];
+const curModeLabel = () => {
+  const m = curGame().modes.find(x=>x[0]===state.mode);
+  return m ? m[1] : state.mode;
+};
+function ensureModeValid(){
+  if(!curGame().modes.some(m=>m[0]===state.mode)) state.mode = curGame().modes[0][0];
 }
 
-/* ---------- rendu ---------- */
-function buildTabs(){
-  $("tabs").innerHTML = "";
-  MODES.forEach(m=>{
+let timer=null, lastPlayers=[], cache=new Map();
+const getCached = k => { const e=cache.get(k); return (e && Date.now()-e.t<120000) ? e.v : null; };
+const setCached = (k,v) => cache.set(k,{t:Date.now(),v});
+
+/* ---------- rendu : switcher de jeu ---------- */
+function buildGameSwitch(){
+  const el = $("gameSwitch"); el.innerHTML="";
+  Object.entries(GAMES).forEach(([key,g])=>{
     const b=document.createElement("button");
-    b.className="tab"+(m.id===currentMode?" active":"");
-    b.innerHTML=`${m.icon} ${esc(m.label)}`;
-    b.onclick=()=>{currentMode=m.id; buildTabs(); load(true); closePlayer();};
-    $("tabs").appendChild(b);
+    b.className = key===state.game ? "active" : "";
+    b.innerHTML = `<span class="g-icon">${g.icon}</span> ${esc(g.name)} <span class="tag">${g.tag}</span>`;
+    b.onclick=()=>{ if(state.game===key) return; state.game=key; state.mode=null; ensureModeValid(); buildGameSwitch(); buildTabs(); closePanels(); populateCountries(); historyState(); load(true); };
+    el.appendChild(b);
+  });
+}
+function buildTabs(){
+  const el=$("tabs"); el.innerHTML="";
+  curGame().modes.forEach(([id,label])=>{
+    const b=document.createElement("button");
+    b.className="tab"+(id===state.mode?" active":"");
+    b.innerHTML=`${M_ICONS[id]||"♟"} ${esc(label)}`;
+    b.onclick=()=>{ state.mode=id; buildTabs(); closePanels(); load(true); };
+    el.appendChild(b);
   });
 }
 
+/* ---------- chargement ---------- */
 async function load(force=false){
-  $("status").textContent="mise à jour…";
+  $("status").textContent="mise à jour…"; $("statusDot").classList.remove("off");
   try{
-    const {rows, source} = await fetchLeaderboard(currentMode);
-    lastPlayers = rows;
+    const p = state.game==="simplechess" ? SimpleChess : SocialChess;
+    const key = state.game+":"+state.mode;
+    let res = getCached(key);
+    if(!res || force){ res = await p.leaderboard(state.mode); setCached(key,res); }
+    lastPlayers = res.rows;
+    $("sourceInfo").textContent="Source : "+res.source;
+    populateCountries();
     render();
     $("status").textContent="en direct";
-    $("sourceInfo").textContent="Source : "+source;
-    const d=new Date();
-    $("update").textContent="Actualisé à "+d.toLocaleTimeString("fr-FR");
+    $("update").textContent="Actualisé à "+new Date().toLocaleTimeString("fr-FR");
   }catch(e){
-    $("status").textContent="erreur";
-    $("tbody").innerHTML=`<tr><td colspan="9" class="msg">Impossible de charger le classement : ${esc(e.message)}<br><br>Hors connexion ? Le service worker affichera la dernière copie connue.</td></tr>`;
+    $("status").textContent="erreur"; $("statusDot").classList.add("off");
+    $("tbody").innerHTML=`<tr><td colspan="9" class="msg">⚠️ Impossible de charger le classement.<br>${esc(e.message)}<br><br>Hors connexion ? La dernière copie connue (service worker) sera affichée.</td></tr>`;
   }
 }
-
+const hasFlagEmoji = s => /[\u{1F1E6}-\u{1F1FF}]/u.test(s||"");
 function render(){
   const needle=$("search").value.trim().toLowerCase();
-  const rows=lastPlayers.filter(p=>!needle||p.username.toLowerCase().includes(needle));
+  const cc=$("countryFilter").value;
+  const rows=lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc));
   const tb=$("tbody"); tb.innerHTML="";
-  if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond au filtre.</td></tr>`; }
+  if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`; }
   rows.forEach(p=>{
     const tr=document.createElement("tr");
     tr.className=(p.rank<=3?"top"+p.rank:"")+" clickable";
+    const flag = hasFlagEmoji(p.name) ? "" : flagEmoji(p.country);
     tr.innerHTML=`
       <td class="rank">${p.rank}</td>
-      <td class="name">${esc(p.username)}${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
-      <td>${flag(p.country)} <span class="sub">${esc(p.country)}</span></td>
-      <td style="text-align:right" class="elo">${p.elo}</td>
-      <td style="text-align:right" class="sub">${p.elo_best}</td>
-      <td style="text-align:right" class="sub">${p.wins}</td>
-      <td style="text-align:right" class="sub">${p.losses}</td>
-      <td style="text-align:right" class="sub">${p.draws}</td>
-      <td style="text-align:right" class="sub">${p.games}</td>`;
-    tr.onclick=()=>showPlayer(p.username);
+      <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
+      <td><span class="sub">${esc(p.country||"—")}</span></td>
+      <td style="text-align:right" class="elo">${p.elo||"—"}</td>
+      <td style="text-align:right" class="sub">${p.eloBest||"—"}</td>
+      <td style="text-align:right" class="sub">${p.wins??"—"}</td>
+      <td style="text-align:right" class="sub">${p.losses??"—"}</td>
+      <td style="text-align:right" class="sub">${p.draws??"—"}</td>
+      <td style="text-align:right" class="sub">${p.games??"—"}</td>`;
+    tr.onclick=()=>showPlayer(p);
     tb.appendChild(tr);
   });
-  $("count").textContent=`${rows.length} joueur(s) affiché(s) · top ${lastPlayers.length} mondial`;
+  $("count").textContent=`${rows.length} joueur(s) · top ${lastPlayers.length} mondial`;
 }
 
-async function showPlayer(username){
+/* ---------- filtre pays ---------- */
+function populateCountries(){
+  const sel=$("countryFilter"); const cur=sel.value;
+  const codes = [...new Set(lastPlayers.map(p=>p.country).filter(Boolean))].sort();
+  sel.innerHTML=`<option value="">🌍 Tous les pays</option>` + codes.map(c=>
+    `<option value="${esc(c)}">${flagEmoji(c)} ${esc(c)}</option>`).join("");
+  sel.value = codes.includes(cur) ? cur : "";
+}
+
+/* ---------- panneau joueur + graphique ---------- */
+async function showPlayer(p){
+  closePanels();
   const panel=$("playerPanel");
-  panel.className="player-panel show";
-  panel.innerHTML=`<div class="player-head">
-      <div class="avatar">♟️</div>
-      <div><h2>${esc(username)}</h2><div class="sub">chargement…</div></div>
-      <button class="player-close" onclick="closePlayer()">✕</button>
-    </div><div class="mini-ratings"><div class="msg">Chargement des Elo…</div></div>`;
+  panel.className="panel show";
+  panel.innerHTML=`<div class="panel-head">
+      <div class="avatar" id="ppAva">♟️</div>
+      <div><h2>${esc(p.name)}</h2><div class="sub" id="ppSub">chargement…</div></div>
+      <button class="panel-close" onclick="closePanels()">✕</button>
+    </div><div class="stats-grid"><div class="msg">Chargement…</div></div>`;
   try{
-    const p=await fetchPlayer(username);
-    const head=panel.querySelector(".player-head");
-    head.querySelector(".sub").textContent=`${flag(p.country)} ${p.country||""} · classements par mode`;
-    const grid=panel.querySelector(".mini-ratings"); grid.innerHTML="";
-    const labels={bullet:"🚀 Bullet",blitz:"⚡ Blitz",standard:"🕒 Rapide","960":"🎲 Chess960",puzzlesbatl:"🧩 Puzzle Battle",puzzles:"🎓 Puzzles"};
-    p.ratings.forEach(r=>{
+    const data = state.game==="simplechess"
+      ? await SimpleChess.player(p.id)
+      : await SocialChess.player(p.id, p);
+    if(data.avatar){ const im=document.createElement("img"); im.src=data.avatar; $("ppAva").innerHTML=""; $("ppAva").appendChild(im); }
+    $("ppSub").textContent = `${flagEmoji(data.country)} ${data.country||"—"} · ${data.extra||""}`.replace(/\s+/g," ").trim();
+    const grid=panel.querySelector(".stats-grid"); grid.innerHTML="";
+    data.ratings.forEach(r=>{
       const d=document.createElement("div");
-      d.className="mini-card";
-      d.innerHTML=`<div class="m-title">${esc(labels[r.type]||r.type)}</div>
-        <div class="m-elo">${r.elo}</div>
-        <div class="m-meta">#${r.rank} mondial · max ${r.elo_best} · ${r.games} parties (${r.wins}V/${r.losses}D/${r.draws}N)</div>`;
+      d.className="stat-card";
+      d.innerHTML=`<div class="m-title">${esc(r.label)}</div>
+        <div class="m-elo">${r.elo||"—"}</div>
+        <div class="m-meta">${r.eloBest?("Max "+r.eloBest+" · "):""}${r.games} parties (${r.wins}V/${r.losses}D/${r.draws}N)</div>
+        ${r.rank?`<span class="m-rank">#${r.rank} mondial</span>`:""}`;
       grid.appendChild(d);
     });
-    grid.scrollIntoView({behavior:"smooth",block:"nearest"});
+    // graphique d'évolution (SimpleChess uniquement)
+    const block=document.createElement("div");
+    block.className="chart-block";
+    block.innerHTML=`<h3 id="chartTitle">📈 Évolution Elo — ${esc(curModeLabel())} <span class="delta flat" id="chartDelta"></span></h3><div id="chartBox"><div class="msg">Chargement du graphique…</div></div>`;
+    panel.appendChild(block);
+    if(state.game==="simplechess"){
+      try{
+        const hist = await SimpleChess.history(p.id, state.mode);
+        drawChart($("chartBox"), hist, `${esc(p.name)} · ${esc(curModeLabel())}`);
+      }catch(e){ $("chartBox").innerHTML=`<div class="chart-note">Graphique indisponible pour ce mode (${esc(e.message)}).</div>`; }
+    } else {
+      $("chartBox").innerHTML=`<div class="chart-note">SocialChess ne fournit pas d'historique Elo public — les statistiques ci-dessus sont celles du jour.</div>`;
+      $("chartTitle").innerHTML=`📈 Évolution Elo <span class="delta flat">historique non disponible</span>`;
+    }
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }catch(e){
-    panel.querySelector(".mini-ratings").innerHTML=`<div class="msg">${esc(e.message)}</div>`;
+    panel.querySelector(".stats-grid").innerHTML=`<div class="msg">${esc(e.message)}</div>`;
   }
 }
-function closePlayer(){ $("playerPanel").className="player-panel"; }
+
+/* ---------- graphique SVG ---------- */
+function drawChart(box, hist, title){
+  const labels=hist.labels||[], values=hist.values||[];
+  const h3 = box.closest(".chart-block")?.querySelector("h3");
+  if(values.length===0){
+    box.innerHTML=`<div class="chart-note">Aucune donnée d'évolution pour cette période.</div>`;
+    if(h3) h3.innerHTML=`📈 Évolution Elo — ${title} <span class="delta flat">historique vide</span>`;
+    return;
+  }
+  const delta = values[values.length-1]-values[0];
+  const dcls = delta>0?"up":delta<0?"down":"flat";
+  const dtxt = (delta>0?"▲ +":delta<0?"▼ ":"• ")+delta+" Elo";
+  if(h3) h3.innerHTML=`📈 Évolution Elo — ${title} <span class="delta ${dcls}">${dtxt}</span>`;
+  const W=760, H=300, padL=52, padR=18, padT=16, padB=34;
+  const min=Math.min(...values), max=Math.max(...values);
+  const span=Math.max(1,max-min);
+  const y0=min-span*0.15, y1=max+span*0.15;
+  const x=i => padL + i*(W-padL-padR)/Math.max(1,values.length-1);
+  const y=v => padT + (y1-v)/(y1-y0)*(H-padT-padB);
+  const pts=values.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  let grid="";
+  [0.25,0.5,0.75].forEach(f=>{
+    const gy=padT+(H-padT-padB)*f;
+    const lab=Math.round(y1-f*(y1-y0));
+    grid+=`<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="#22303f" stroke-width="1"/>
+           <text x="${padL-8}" y="${gy+4}" fill="#66788a" font-size="11" text-anchor="end">${lab}</text>`;
+  });
+  const area = `<polygon points="${padL},${H-padB} ${pts} ${W-padR},${H-padB}" fill="url(#garea)" opacity=".55"/>`;
+  const dots = values.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="#7fdb6a" stroke="#0a0e13" stroke-width="2"><title>${esc(labels[i]||"")} : ${v}</title></circle>`).join("");
+  const xlabels = labels.map((l,i)=>`<text x="${x(i)}" y="${H-10}" fill="#66788a" font-size="11" text-anchor="middle">${esc(l)}</text>`).join("");
+  box.innerHTML=`<svg class="svg-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">
+    <defs>
+      <linearGradient id="garea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7fdb6a" stop-opacity=".45"/>
+        <stop offset="100%" stop-color="#7fdb6a" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="gline" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#3fa7d6"/><stop offset="100%" stop-color="#7fdb6a"/>
+      </linearGradient>
+    </defs>
+    ${grid}
+    ${area}
+    <polyline points="${pts}" fill="none" stroke="url(#gline)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+    ${xlabels}
+  </svg>
+  <div class="chart-note">${esc(hist.note||"")} · ${hist.games} parties · min ${hist.eloMin||"—"} · max ${hist.eloMax||"—"} · Elo adversaire moyen ${hist.oppAvg||"—"}</div>`;
+}
+
+/* ---------- mon compte ---------- */
+$("accountName").textContent = CFG.MY_USERNAME || "Mon compte";
+async function showAccount(){
+  closePanels();
+  const panel=$("accountPanel");
+  panel.className="panel show";
+  if(state.game==="socialchess"){ /* le compte perso est lié à SimpleChess */ }
+  panel.innerHTML=`<div class="panel-head">
+      <div class="avatar">👤</div>
+      <div><h2>Mon compte — ${esc(CFG.MY_USERNAME)}</h2><div class="sub">SimpleChess · cliquez sur un mode pour voir son graphique</div></div>
+      <button class="panel-close" onclick="closePanels()">✕</button>
+    </div><div class="stats-grid"><div class="msg">Chargement…</div></div>`;
+  const savedMode = state.mode;
+  try{
+    const data = await SimpleChess.player(CFG.MY_USERNAME);
+    const grid=panel.querySelector(".stats-grid"); grid.innerHTML="";
+    let selected = -1;
+    const renderCards = ()=>{
+      grid.innerHTML="";
+      data.ratings.forEach((r,i)=>{
+        const d=document.createElement("div");
+        d.className="stat-card"+(i===selected?" selected":"");
+        d.innerHTML=`<div class="m-title">${esc(r.label)}</div>
+          <div class="m-elo">${r.elo||"—"}</div>
+          <div class="m-meta">${r.eloBest?("Max "+r.eloBest+" · "):""}${r.games} parties (${r.wins}V/${r.losses}D/${r.draws}N)</div>
+          ${r.rank?`<span class="m-rank">#${r.rank} mondial</span>`:""}`;
+        d.onclick=async ()=>{
+          selected=i; renderCards();
+          await drawMyChart(r.mode);
+        };
+        grid.appendChild(d);
+      });
+    };
+    renderCards();
+    const block=document.createElement("div");
+    block.className="chart-block";
+    block.innerHTML=`<h3 id="myChartTitle">📈 Évolution Elo</h3><div id="myChartBox"><div class="msg">Choisissez un mode ci-dessus</div></div>`;
+    panel.appendChild(block);
+    async function drawMyChart(mode){
+      try{
+        const hist = await SimpleChess.history(CFG.MY_USERNAME, mode);
+        $("myChartBox").innerHTML='<div class="msg">…</div>';
+        drawChart($("myChartBox"), hist, `${esc(CFG.MY_USERNAME)} · ${esc(M_ICONS[mode]||"")} ${esc((GAMES.simplechess.modes.find(m=>m[0]===mode)||[,""])[1])}`);
+      }catch(e){ $("myChartBox").innerHTML=`<div class="chart-note">Graphique indisponible : ${esc(e.message)}</div>`; }
+    }
+    panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }catch(e){
+    panel.querySelector(".stats-grid").innerHTML=`<div class="msg">Impossible de charger le compte : ${esc(e.message)}</div>`;
+  }
+}
+
+function closePanels(){ $("playerPanel").className="panel"; $("accountPanel").className="panel"; }
 
 /* ---------- installation PWA ---------- */
 let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt", e=>{
-  e.preventDefault(); deferredPrompt=e;
-  $("installBtn").classList.add("show");
+  e.preventDefault(); deferredPrompt=e; $("installBtn").classList.add("show");
 });
 $("installBtn").onclick=async ()=>{
   if(!deferredPrompt) return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
   deferredPrompt=null; $("installBtn").classList.remove("show");
 };
 window.addEventListener("appinstalled", ()=>{ $("installBtn").classList.remove("show"); $("status").textContent="installée ✓"; });
-
-/* ---------- service worker ---------- */
 if("serviceWorker" in navigator){
-  window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("./sw.js").catch(()=>{/* aperçu sandboxé : silencieux */});
-  });
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
 
 /* ---------- events ---------- */
 $("refresh").onclick=()=>load(true);
 $("search").addEventListener("input", render);
+$("countryFilter").addEventListener("change", render);
+$("accountBtn").onclick=showAccount;
 $("auto").onchange=e=>{
   if(timer) clearInterval(timer), timer=null;
   if(e.target.checked) timer=setInterval(()=>load(false), CFG.AUTO_REFRESH_SEC*1000);
 };
+window.addEventListener("hashchange", ()=>{}); // placehold
+function historyState(){ try{ history.replaceState(null,"",`?game=${state.game}&mode=${encodeURIComponent(state.mode)}`); }catch(e){} }
 
-buildTabs();
+/* ---------- boot ---------- */
+ensureModeValid();
+buildGameSwitch(); buildTabs(); populateCountries(); historyState();
 load(true);
 </script>
 </body>

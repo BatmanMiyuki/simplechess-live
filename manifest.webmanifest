@@ -1,50 +1,25 @@
 {
-  "name": "SimpleChess — Classement en direct",
-  "short_name": "SimpleChess Live",
-  "description": "Classement mondial en direct de SimpleChess (bullet, blitz, rapide, chess960, puzzle battle).",
+  "name": "ChessLive — Classements échecs en direct",
+  "short_name": "ChessLive",
+  "description": "Classements en direct SimpleChess & SocialChess : bullet, blitz, rapide, chess960, classique… avec stats joueur et graphique d'évolution Elo.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f1419",
-  "theme_color": "#0f1419",
+  "background_color": "#0a0e13",
+  "theme_color": "#0a0e13",
   "categories": ["games", "sports"],
   "icons": [
-    {
-      "src": "static/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "static/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "static/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    {
-      "name": "Bullet",
-      "short_name": "Bullet",
-      "url": "./?mode=bullet"
-    },
-    {
-      "name": "Blitz",
-      "short_name": "Blitz",
-      "url": "./?mode=blitz"
-    },
-    {
-      "name": "Rapide",
-      "short_name": "Rapide",
-      "url": "./?mode=standard"
-    }
+    { "name": "SimpleChess — Bullet", "short_name": "SC Bullet", "url": "./?game=simplechess&mode=bullet" },
+    { "name": "SimpleChess — Blitz", "short_name": "SC Blitz", "url": "./?game=simplechess&mode=blitz" },
+    { "name": "SimpleChess — Rapide", "short_name": "SC Rapide", "url": "./?game=simplechess&mode=standard" },
+    { "name": "SocialChess — Rapid", "short_name": "SCo Rapid", "url": "./?game=socialchess&category=Rapid" },
+    { "name": "SocialChess — Blitz", "short_name": "SCo Blitz", "url": "./?game=socialchess&category=Blitz" }
   ]
 }

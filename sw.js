@@ -1,10 +1,10 @@
 /* =============================================================
-   Service Worker — SimpleChess Live
-   - Shell de l'app (HTML, manifest, config, icônes) : CACHE FIRST
-   - Données (classement) : NETWORK FIRST avec repli sur le cache
-     => la dernière copie connue reste consultable hors connexion.
+   Service Worker — ChessLive
+   - Shell de l'app : CACHE FIRST (offline après 1ère visite)
+   - Données REST (classements/profils) : NETWORK FIRST + repli cache
+   - Le WebSocket SocialChess est temps réel, non mis en cache.
    ============================================================= */
-const CACHE_NAME = "simplechess-live-v1";
+const CACHE_NAME = "chesslive-v1";
 const SHELL_URLS = [
   "./",
   "./index.html",
@@ -26,25 +26,19 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-      )
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.method !== "GET") return; // ne pas toucher aux POST
+  if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-
-  // Données de classement (API amont ou notre backend) : network-first
   const isData =
     url.hostname === "api.echecs.com" || url.pathname.includes("/api/leaderboard") ||
-    url.pathname.includes("/api/player");
-
-  // Navigation : network-first, repli index.html en cache (hors-ligne)
+    url.pathname.includes("/api/player") || url.pathname.includes("/api/health");
   const isNav = req.mode === "navigate";
 
   if (isNav) {
@@ -75,8 +69,5 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Le reste du shell : cache-first
-  event.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req))
-  );
+  event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
 });

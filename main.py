@@ -1,15 +1,17 @@
 """
-SimpleChess Leaderboard API — API non officielle
+ChessLive API — API non officielle des classements échecs en direct
 
-Expose le classement en direct de SimpleChess (Europe Echecs) pour les modes
-bullet, blitz, rapid (standard), chess960 et puzzle battle, en consommant
-l'API publique de la zone de jeu https://api.echecs.com (endpoint
-public/liveplay/top, sans authentification requise).
+Deux fournisseurs :
+  1. SimpleChess  (Europe Echecs)   — REST  https://api.echecs.com
+  2. SocialChess  (Woodchop S/W)    — WS    wss://api.socialchess.com?x=ws
+     protocole : frame binaire "\x00" + JSON, commandes "usersByRank",
+     "getUser" (identif. "anonymous":true, "build", "version", "wsId"...)
 
-⚠️ Projet non officiel, à but informatif. Ne pas abuser de l'API amont
-(voir README.md). Les données amont ne changent qu'environ toutes les
-60 minutes ("refreshDelayMin"), un cache local + rafraîchissement manuel
-sont donc prévus.
+⚠️ Projet non officiel, à but informatif. Ne pas abuser des API amont.
+Les données SimpleChess ne changent que ~toutes les 60 min → cache local.
+
+La PWA (index.html) fonctionne en statique sans ce backend (mode "amont").
+Ce backend sert le mode "api", le cache serveur et la doc Swagger.
 
 Lancer :  uvicorn main:app --host 0.0.0.0 --port 8000
 Docs   :  http://localhost:8000/docs
@@ -23,6 +25,7 @@ import time
 from typing import Any, Optional
 
 import httpx
+import websockets
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -82,6 +85,154 @@ def resolve_mode(mode: str) -> str:
         status_code=404,
         detail=f"Mode inconnu '{mode}'. Modes disponibles : {', '.join(MODES)}",
     )
+
+
+# ---------------------------------------------------------------------------
+# SocialChess — client WebSocket (frame binaire "\x00" + JSON)
+# ---------------------------------------------------------------------------
+
+SC_WS_URL = "wss://api.socialchess.com?x=ws"
+SC_WS_BASE = {
+    "anonymous": "true",
+    "build": "856",
+    "version": "2026.04.2.856.web",
+    "deviceId": "chesslive-proxy",
+    "language": "fr",
+    "platform": "web",
+}
+# Catégories de classement SocialChess (7 modes)
+SOCIAL_TYPES = ["Bullet", "Blitz", "Rapid", "Chess960", "Classical", "Fast", "Slow"]
+
+
+class SocialChessClient:
+    """Connexion WS persistante + requêtes {command, wsId} avec ping préalable."""
+
+    def __init__(self) -> None:
+        self._ws = None
+        self._ws_id = 0
+        self._pending: dict[int, asyncio.Future] = {}
+        self._lock = asyncio.Lock()
+        self._listener: Optional[asyncio.Task] = None
+
+    async def ensure(self) -> None:
+        if self._ws is not None:
+            return
+        self._ws = await websockets.connect(SC_WS_URL, max_size=16 * 2**20)
+        self._listener = asyncio.create_task(self._read_loop())
+
+    async def _read_loop(self) -> None:
+        try:
+            async for raw in self._ws:
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8", "replace")
+                if not raw or raw == ".":
+                    continue
+                try:
+                    msg = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                wid = msg.get("wsId")
+                if wid in self._pending:
+                    fut = self._pending.pop(wid)
+                    if not fut.done():
+                        fut.set_result(msg)
+        except Exception:
+            pass
+        finally:
+            self._ws = None
+            for fut in self._pending.values():
+                if not fut.done():
+                    fut.set_result({"error": "closed"})
+            self._pending.clear()
+            self._listener = None
+
+    async def request(self, command: str, extra: Optional[dict] = None,
+                      timeout: float = 12.0) -> dict:
+        async with self._lock:
+            await self.ensure()
+            self._ws_id += 1
+            wid = self._ws_id
+            payload = {"command": command, "wsId": wid, **SC_WS_BASE, **(extra or {})}
+            frame = ("\x00" + json.dumps(payload)).encode("utf-8")
+            fut = asyncio.get_event_loop().create_future()
+            self._pending[wid] = fut
+            try:
+                await self._ws.send(frame)
+                return await asyncio.wait_for(fut, timeout)
+            except asyncio.TimeoutError:
+                self._pending.pop(wid, None)
+                return {"error": "timeout"}
+            finally:
+                self._pending.pop(wid, None) if fut.done() else None
+
+    async def ask(self, command: str, extra: Optional[dict] = None) -> dict:
+        # le serveur exige un "ping" avant la commande
+        await self.request("ping")
+        return await self.request(command, extra)
+
+    async def leaderboard(self, category: str) -> list[dict]:
+        cat = category if category in SOCIAL_TYPES else "Rapid"
+        j = await self.ask("usersByRank", {"nearElo": "3000", "ascending": "false", "category": cat})
+        if j.get("error") or "usersByRank" not in j:
+            raise HTTPException(status_code=502, detail=f"SocialChess : {j.get('error') or 'réponse vide'}")
+        users = j["usersByRank"] or []
+        rows = []
+        for i, u in enumerate(users):
+            s = u.get("stats" + cat) or {}
+            rows.append({
+                "rank": int(s.get("rank") or i + 1),
+                "username": u.get("username") or u.get("id"),
+                "title": "",
+                "country": u.get("countryCode") or "",
+                "elo": int(s.get("e") or 0),
+                "elo_best": int(s.get("he") or 0),
+                "wins": int(s.get("w") or 0),
+                "losses": int(s.get("l") or 0),
+                "draws": int(s.get("d") or 0),
+                "games": int(s.get("w") or 0) + int(s.get("l") or 0) + int(s.get("d") or 0),
+                "_id": u.get("id"),
+                "_raw": u,
+            })
+        return rows
+
+    async def user(self, user_id: str) -> dict:
+        j = await self.ask("getUser", {"getUserIds": [user_id], "includeStats": "true"})
+        users = (j or {}).get("users") or []
+        if not users:
+            raise HTTPException(status_code=404, detail="Joueur SocialChess introuvable")
+        return users[0]
+
+
+social_client = SocialChessClient()
+
+
+def social_normalize(user: dict) -> dict:
+    """Profil SocialChess → forme commune JSON."""
+    rated = ["Fast", "Slow", "Bullet", "Blitz", "Rapid", "Chess960", "Classical"]
+    ratings = []
+    for cat in rated:
+        s = user.get("stats" + cat) or {}
+        if s.get("e") is None:
+            continue
+        ratings.append({
+            "type": {"Fast": "fast", "Slow": "slow"}.get(cat, cat.lower()),
+            "elo": int(s.get("e") or 0),
+            "elo_best": int(s.get("he") or 0),
+            "rank": int(s.get("rank") or 0),
+            "games": int(s.get("w") or 0) + int(s.get("l") or 0) + int(s.get("d") or 0),
+            "wins": int(s.get("w") or 0),
+            "losses": int(s.get("l") or 0),
+            "draws": int(s.get("d") or 0),
+        })
+    return {
+        "username": user.get("username") or user.get("id"),
+        "country": user.get("countryCode") or "",
+        "city": user.get("city") or "",
+        "created": (user.get("created") or "")[:10],
+        "avatar_url": ("https://s3.amazonaws.com/chess-profile-images/lrg-"
+                       + user["profileImageName"]) if user.get("profileImageName") else None,
+        "ratings": ratings,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -176,12 +327,13 @@ class UpstreamClient:
 upstream = UpstreamClient()
 
 app = FastAPI(
-    title="SimpleChess Leaderboard API",
+    title="ChessLive API — Classements échecs en direct",
     description=(
-        "API non officielle du classement en direct SimpleChess (Europe Echecs), "
-        "par mode de jeu : bullet, blitz, rapid, chess960, puzzle battle."
+        "API non officielle des classements en direct SimpleChess et SocialChess : "
+        "bullet, blitz, rapide, chess960, classique… + profils joueurs et "
+        "historique d'évolution Elo (SimpleChess)."
     ),
-    version="1.0.0",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -256,48 +408,34 @@ async def modes() -> dict:
 @app.get("/api/leaderboard/{mode}", tags=["Classement"])
 async def leaderboard(
     mode: str,
+    provider: str = Query("simplechess", description="'simplechess' ou 'socialchess'"),
     limit: int = Query(100, ge=1, le=100, description="Nombre de joueurs à renvoyer"),
-    country: Optional[str] = Query(None, description="Filtrer par code pays (ex. FRA)"),
+    country: Optional[str] = Query(None, description="Filtrer par code pays (ex. FRA / FR)"),
     search: Optional[str] = Query(None, description="Filtrer par pseudo (insensible à la casse)"),
     refresh: bool = Query(False, description="Forcer le rafraîchissement de l'API amont"),
 ) -> JSONResponse:
-    mode_id = resolve_mode(mode)
-
-    raw = await upstream.post(
-        "/public/liveplay/top",
-        {"type": UPSTREAM_TYPE[mode_id]},
-        ttl=60.0,
-        force=refresh,
-        key=f"top:{mode_id}",
-    )
-
-    data = raw.get("data", {})
-    flat = data.get("flatList", {})
-    players = parse_flat_list(flat)
+    provider = provider.lower()
+    if provider not in ("simplechess", "socialchess"):
+        raise HTTPException(status_code=404, detail="Provider inconnu (simplechess|socialchess)")
 
     refresh_delay_min = None
-    if data.get("0") == "refreshDelayMin":
-        refresh_delay_min = to_int(data.get("1"))
+    source = UPSTREAM_BASE if provider == "simplechess" else SC_WS_URL
+    players = []
 
-    # filtres
-    if country:
-        players = [p for p in players if p.get("country", "").upper() == country.upper()]
-    if search:
-        needle = search.strip().lower()
-        players = [p for p in players if needle in to_str(p.get("username")).lower()]
-
-    limit = min(limit, len(players))
-    top = players[:limit]
-
-    return JSONResponse({
-        "mode": mode_id,
-        "mode_label": MODES[mode_id]["label"],
-        "generated_at": int(time.time()),
-        "upstream_refresh_delay_min": refresh_delay_min,
-        "count": len(top),
-        "source": UPSTREAM_BASE,
-        "unofficial": True,
-        "top": [
+    if provider == "simplechess":
+        mode_id = resolve_mode(mode)
+        raw = await upstream.post(
+            "/public/liveplay/top",
+            {"type": UPSTREAM_TYPE[mode_id]},
+            ttl=60.0,
+            force=refresh,
+            key=f"top:{mode_id}",
+        )
+        data = raw.get("data", {})
+        flat = data.get("flatList", {})
+        players = parse_flat_list(flat)
+        refresh_delay_min = to_int(data.get("1")) if data.get("0") == "refreshDelayMin" else None
+        clean = [
             {
                 "rank": to_int(p.get("rank")),
                 "username": to_str(p.get("username")),
@@ -310,8 +448,56 @@ async def leaderboard(
                 "draws": to_int(p.get("draws")),
                 "games": to_int(p.get("total")),
             }
-            for p in top
-        ],
+            for p in players
+        ]
+        # filtres
+        if country:
+            clean = [p for p in clean if p["country"].upper() == country.upper()]
+        if search:
+            needle = search.strip().lower()
+            clean = [p for p in clean if needle in p["username"].lower()]
+        top, mode_label = clean[:limit], MODES[mode_id]["label"]
+
+    else:  # socialchess
+        if mode not in SOCIAL_TYPES and mode not in [m.lower() for m in SOCIAL_TYPES]:
+            raise HTTPException(status_code=404,
+                                detail="Catégorie inconnue. Choisir parmi : " + ", ".join(SOCIAL_TYPES))
+        cat = next((c for c in SOCIAL_TYPES if c.lower() == mode.lower()), mode)
+        key = f"sctop:{cat}"
+        rows = await social_client.leaderboard(cat)
+        clean = [
+            {
+                "rank": r["rank"],
+                "username": r["username"],
+                "title": r["title"],
+                "country": r["country"],
+                "elo": r["elo"],
+                "elo_best": r["elo_best"],
+                "wins": r["wins"],
+                "losses": r["losses"],
+                "draws": r["draws"],
+                "games": r["games"],
+                "_id": r["_id"],
+            }
+            for r in rows
+        ]
+        if country:
+            clean = [p for p in clean if p["country"].upper() == country.upper()]
+        if search:
+            needle = search.strip().lower()
+            clean = [p for p in clean if needle in p["username"].lower()]
+        top, mode_label = clean[:limit], cat
+
+    return JSONResponse({
+        "provider": provider,
+        "mode": mode,
+        "mode_label": mode_label,
+        "generated_at": int(time.time()),
+        "upstream_refresh_delay_min": refresh_delay_min,
+        "count": len(top),
+        "source": source,
+        "unofficial": True,
+        "top": top,
     })
 
 
@@ -390,9 +576,43 @@ async def player_rating(username: str, mode: str) -> JSONResponse:
     )
 
 
-# ---------------------------------------------------------------------------
-# Page d'accueil + fichiers PWA (installable : manifest, service worker, icônes)
-# ---------------------------------------------------------------------------
+@app.get("/api/player/{username}/history/{mode}", tags=["Joueur"])
+async def player_history(username: str, mode: str) -> JSONResponse:
+    """Évolution Elo (SimpleChess) : graphique mensuel, période 1Y."""
+    mode_id = resolve_mode(mode)
+    uname = username.strip()
+    raw = await upstream.post(
+        "/public/player/profile/stats/advanced",
+        {"username": uname, "type": UPSTREAM_TYPE[mode_id], "period": "1Y",
+         "withEloChart": True, "withOpeningsChart": False, "withOpeningsV2": False},
+        ttl=600.0,
+        key=f"history:{uname.lower()}:{mode_id}",
+    )
+    data = raw.get("data") or {}
+    chart = data.get("eloChartData") or {}
+    stats = data.get("stats") or {}
+    return JSONResponse({
+        "username": uname,
+        "mode": mode_id,
+        "period": "1Y",
+        "labels": chart.get("labels") or [],
+        "values": [to_int(v) for v in (chart.get("values") or [])],
+        "trend": data.get("eloTrend") or "",
+        "games": to_int(stats.get("games")),
+        "wins": to_int(stats.get("wins")),
+        "losses": to_int(stats.get("losses")),
+        "draws": to_int(stats.get("draws")),
+        "elo_min": to_int(stats.get("eloMin")),
+        "elo_max": to_int(stats.get("eloMax")),
+        "opp_elo_avg": to_float(stats.get("oppEloAvg")),
+    })
+
+
+@app.get("/api/player/social/{user_id}", tags=["Joueur"])
+async def social_player(user_id: str) -> JSONResponse:
+    """Profil SocialChess via WebSocket (getUser + includeStats)."""
+    user = await social_client.user(user_id)
+    return JSONResponse(social_normalize(user))
 
 @app.get("/", include_in_schema=False)
 async def index() -> FileResponse:
