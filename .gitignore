@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Investigation (bundle amont, fichiers volumineux — hors repo)
+investigation/
+
+# Environnements / éditeurs
+.env
+.DS_Store
+.idea/
+.vscode/

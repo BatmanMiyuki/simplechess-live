@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SimpleChess Live — Classement en direct</title>
+<meta name="description" content="Classement mondial en direct de SimpleChess : bullet, blitz, rapide, chess960, puzzle battle.">
+<meta name="theme-color" content="#0f1419">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./static/icons/icon-192.png">
+<link rel="apple-touch-icon" href="./static/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SimpleChess Live">
+<style>
+  :root{
+    --bg:#0f1419; --panel:#171e26; --panel2:#1d2630; --line:#2a3542;
+    --txt:#e8edf2; --dim:#8b98a5; --accent:#7fdb6a; --accent2:#3fa7d6;
+    --gold:#f2c94c; --red:#e5634d;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{height:100%}
+  body{background:var(--bg); color:var(--txt); font-family:"Segoe UI",system-ui,-apple-system,sans-serif; min-height:100vh}
+  .wrap{max-width:1060px; margin:0 auto; padding:28px 18px calc(40px + env(safe-area-inset-bottom))}
+  header{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:6px}
+  .logo{width:52px; height:52px; border-radius:12px; background:linear-gradient(135deg,#2e3d4d,#1d2630); display:flex; align-items:center; justify-content:center; font-size:28px; border:1px solid var(--line); flex-shrink:0}
+  h1{font-size:24px; font-weight:700; line-height:1.2}
+  h1 small{display:block; font-size:13px; font-weight:400; color:var(--dim); margin-top:2px}
+  .header-actions{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .badge{display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line); padding:8px 14px; border-radius:999px; font-size:13px; color:var(--dim)}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .install-btn{display:none; align-items:center; gap:8px; background:linear-gradient(135deg,var(--accent2),#2d7fa8); color:#fff; border:none; padding:9px 16px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(63,167,214,.35)}
+  .install-btn.show{display:inline-flex}
+  .tabs{display:flex; gap:8px; margin:22px 0 14px; flex-wrap:wrap}
+  .tab{background:var(--panel); border:1px solid var(--line); color:var(--dim); padding:9px 16px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; transition:.15s}
+  .tab:hover{color:var(--txt); border-color:#3d4c5c}
+  .tab.active{background:var(--accent2); border-color:var(--accent2); color:#0d1117}
+  .toolbar{display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap}
+  .toolbar input{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:9px 14px; border-radius:10px; font-size:14px; min-width:220px; outline:none; flex:1; max-width:340px}
+  .toolbar input:focus{border-color:var(--accent2)}
+  .toolbar label{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--dim); cursor:pointer; user-select:none}
+  .refresh-btn{background:var(--panel); border:1px solid var(--line); color:var(--txt); padding:9px 14px; border-radius:10px; cursor:pointer; font-size:13px}
+  .refresh-btn:hover{border-color:var(--accent2)}
+  .update{color:var(--dim); font-size:12px}
+  table{width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+  thead th{background:var(--panel2); text-align:left; padding:12px 14px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); border-bottom:1px solid var(--line)}
+  tbody td{padding:11px 14px; border-bottom:1px solid #212b36; font-size:14px}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#1d2733}
+  tbody tr.clickable{cursor:pointer}
+  .rank{font-weight:700; color:var(--dim); width:64px}
+  tr.top1 .rank, tr.top1 .name{color:var(--gold)}
+  tr.top2 .rank{color:#c9d6e2} tr.top3 .rank{color:#d2955f}
+  .name{font-weight:700}
+  .elo{font-weight:700; color:var(--accent)}
+  .sub{color:var(--dim); font-size:12px}
+  .flag{font-size:15px; margin-right:6px}
+  .nav{display:flex; justify-content:space-between; margin-top:14px; font-size:13px; color:var(--dim); flex-wrap:wrap; gap:6px}
+  .msg{padding:30px; text-align:center; color:var(--dim)}
+  footer{margin-top:34px; font-size:12px; color:var(--dim); line-height:1.7; border-top:1px solid var(--line); padding-top:16px}
+  footer code{background:var(--panel); padding:1px 6px; border-radius:5px; font-size:11px}
+  /* Panneau joueur */
+  .player-panel{margin:0 0 16px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:0; overflow:hidden; display:none}
+  .player-panel.show{display:block}
+  .player-head{display:flex; align-items:center; gap:14px; padding:16px 18px; background:var(--panel2); flex-wrap:wrap}
+  .avatar{width:52px; height:52px; border-radius:50%; background:#253242; display:flex; align-items:center; justify-content:center; font-size:26px; overflow:hidden; flex-shrink:0}
+  .avatar img{width:100%; height:100%; object-fit:cover}
+  .player-head h2{font-size:19px}
+  .player-head .sub{margin-top:2px}
+  .player-close{margin-left:auto; background:none; border:1px solid var(--line); color:var(--dim); width:32px; height:32px; border-radius:8px; cursor:pointer; font-size:15px}
+  .player-close:hover{color:var(--txt)}
+  .mini-ratings{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; padding:16px 18px}
+  .mini-card{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .mini-card .m-title{font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.05em}
+  .mini-card .m-elo{font-size:22px; font-weight:800; color:var(--accent); margin:4px 0 2px}
+  .mini-card .m-meta{font-size:11px; color:var(--dim)}
+  @media (max-width:640px){
+    h1{font-size:20px} .badge{display:none}
+    .toolbar input{max-width:100%}
+    thead th:nth-child(5), tbody td:nth-child(5),
+    thead th:nth-child(9), tbody td:nth-child(9){display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">♞</div>
+    <h1>SimpleChess Live
+      <small>Classement mondial en direct · bullet · blitz · rapide · 960 · puzzle battle</small>
+    </h1>
+    <div class="header-actions">
+      <button class="install-btn" id="installBtn">⬇️ Installer l'app</button>
+      <div class="badge"><span class="dot"></span> <span id="status">chargement…</span></div>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="player-panel" id="playerPanel"></div>
+
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Filtrer par pseudo…">
+    <label><input type="checkbox" id="auto"> Auto (60 s)</label>
+    <button class="refresh-btn" id="refresh">↻ Actualiser</button>
+    <span class="update" id="update"></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:64px">#</th><th>Joueur</th><th>Pays</th>
+        <th style="text-align:right">Elo</th><th style="text-align:right">Elo max</th>
+        <th style="text-align:right">V</th><th style="text-align:right">D</th>
+        <th style="text-align:right">N</th><th style="text-align:right">Parties</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"><tr><td colspan="9" class="msg">Chargement du classement…</td></tr></tbody>
+  </table>
+
+  <div class="nav">
+    <span id="count"></span>
+    <span id="sourceInfo"></span>
+  </div>
+
+  <footer>
+    ⚠️ Projet non officiel — non affilié à Europe Echecs / SimpleChess. Données issues de l'API publique de la zone de jeu
+    (api.echecs.com, CORS ouvert) et mises en cache par le service worker : consultables hors connexion après la première visite.
+    <br>Déploiement : <code>config.js</code> (mode direct ou via l'API FastAPI incluse) · API non officielle : <code>/api/leaderboard/{mode}</code> · <code>/api/player/{pseudo}</code>
+  </footer>
+</div>
+
+<script>
+/* ----- config (peut être surchargée par config.js) ----- */
+const CFG = Object.assign(
+  { API_MODE:"amont", API_BASE:"", AUTO_REFRESH_SEC:60 },
+  (window.SC_CONFIG || {})
+);
+
+const UPSTREAM = "https://api.echecs.com";
+const UPSTREAM_HEADERS = {
+  "Content-Type":"application/json","Accept":"application/json",
+  "App-Lang":"EN","App-Site":"SIM","App-Platform":"website",
+  "App-Name":"simplechessWeb","App-Version":"5.5.41","App-Impl":"1"
+};
+const MODES = [
+  {id:"bullet",label:"Bullet",icon:"🚀"},
+  {id:"blitz",label:"Blitz",icon:"⚡"},
+  {id:"standard",label:"Rapid",icon:"🕒"},
+  {id:"chess960",label:"Chess960",icon:"🎲"},
+  {id:"puzzlesbatl",label:"Puzzle Battle",icon:"🧩"},
+];
+const UPSTREAM_TYPE = {bullet:"bullet",blitz:"blitz",standard:"standard",chess960:"960",puzzlesbatl:"puzzlesbatl"};
+const FLAGS = {VAT:"🇻🇦",FRA:"🇫🇷",USA:"🇺🇸",ESP:"🇪🇸",ALB:"🇦🇱",ARG:"🇦🇷",SWE:"🇸🇪",BHR:"🇧🇭",GEO:"🇬🇪",BLZ:"🇧🇿",FID:"🌍"};
+const flag = c => FLAGS[(c||"").toUpperCase()] || "🏳️";
+
+let currentMode = new URLSearchParams(location.search).get("mode") || "bullet";
+if(!MODES.some(m=>m.id===currentMode)) currentMode = "bullet";
+let timer = null;
+let lastPlayers = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- appels de données ---------- */
+async function postUpstream(path, body){
+  const r = await fetch(UPSTREAM + path, {method:"POST", headers:UPSTREAM_HEADERS, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("HTTP "+r.status+" (amont)");
+  const j = await r.json();
+  if(!j.success) throw new Error(j.error?.text || "Erreur amont");
+  return j.data;
+}
+const flatToObjects = flat => {
+  const fields = flat.fields || [], out = [];
+  (flat.values||[]).forEach(row => out.push(Object.fromEntries(fields.map((f,i)=>[f,row[i]]))));
+  return out;
+};
+
+async function fetchLeaderboard(mode){
+  if(CFG.API_MODE === "api"){
+    const r = await fetch(CFG.API_BASE + "/api/leaderboard/" + mode);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const j = await r.json();
+    return {rows:j.top, source:"API non officielle ("+CFG.API_BASE+")"};
+  }
+  const data = await postUpstream("/public/liveplay/top", {type:UPSTREAM_TYPE[mode]});
+  const rows = flatToObjects(data.flatList||{}).map(p=>({
+    rank:+p.rank, username:p.username, title:p.title||"", country:p.country||"",
+    elo:+p.elo, elo_best:+p.eloBest, wins:+p.wins, losses:+p.losses,
+    draws:+p.draws, games:+p.total
+  }));
+  return {rows, source:"api.echecs.com (données officielles)"};
+}
+
+async function fetchPlayer(username){
+  if(CFG.API_MODE === "api"){
+    const r = await fetch(CFG.API_BASE + "/api/player/" + encodeURIComponent(username));
+    if(r.status===404) throw new Error("Joueur introuvable");
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }
+  const prof = await postUpstream("/public/player/profile/get", {username});
+  if(!prof.username) throw new Error("Joueur introuvable");
+  const data = await postUpstream("/public/player/profile/stats/ratings", {username});
+  const ratings = flatToObjects(data.flatList||{}).map(r=>({
+    type:r.type, elo:+r.elo, elo_best:+r.eloBest, rank:+r.rank,
+    games:+r.games, wins:+r.wins, losses:+r.losses, draws:+r.draws
+  }));
+  return {username:prof.username, country:prof.country||"", ratings};
+}
+
+/* ---------- rendu ---------- */
+function buildTabs(){
+  $("tabs").innerHTML = "";
+  MODES.forEach(m=>{
+    const b=document.createElement("button");
+    b.className="tab"+(m.id===currentMode?" active":"");
+    b.innerHTML=`${m.icon} ${esc(m.label)}`;
+    b.onclick=()=>{currentMode=m.id; buildTabs(); load(true); closePlayer();};
+    $("tabs").appendChild(b);
+  });
+}
+
+async function load(force=false){
+  $("status").textContent="mise à jour…";
+  try{
+    const {rows, source} = await fetchLeaderboard(currentMode);
+    lastPlayers = rows;
+    render();
+    $("status").textContent="en direct";
+    $("sourceInfo").textContent="Source : "+source;
+    const d=new Date();
+    $("update").textContent="Actualisé à "+d.toLocaleTimeString("fr-FR");
+  }catch(e){
+    $("status").textContent="erreur";
+    $("tbody").innerHTML=`<tr><td colspan="9" class="msg">Impossible de charger le classement : ${esc(e.message)}<br><br>Hors connexion ? Le service worker affichera la dernière copie connue.</td></tr>`;
+  }
+}
+
+function render(){
+  const needle=$("search").value.trim().toLowerCase();
+  const rows=lastPlayers.filter(p=>!needle||p.username.toLowerCase().includes(needle));
+  const tb=$("tbody"); tb.innerHTML="";
+  if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond au filtre.</td></tr>`; }
+  rows.forEach(p=>{
+    const tr=document.createElement("tr");
+    tr.className=(p.rank<=3?"top"+p.rank:"")+" clickable";
+    tr.innerHTML=`
+      <td class="rank">${p.rank}</td>
+      <td class="name">${esc(p.username)}${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
+      <td>${flag(p.country)} <span class="sub">${esc(p.country)}</span></td>
+      <td style="text-align:right" class="elo">${p.elo}</td>
+      <td style="text-align:right" class="sub">${p.elo_best}</td>
+      <td style="text-align:right" class="sub">${p.wins}</td>
+      <td style="text-align:right" class="sub">${p.losses}</td>
+      <td style="text-align:right" class="sub">${p.draws}</td>
+      <td style="text-align:right" class="sub">${p.games}</td>`;
+    tr.onclick=()=>showPlayer(p.username);
+    tb.appendChild(tr);
+  });
+  $("count").textContent=`${rows.length} joueur(s) affiché(s) · top ${lastPlayers.length} mondial`;
+}
+
+async function showPlayer(username){
+  const panel=$("playerPanel");
+  panel.className="player-panel show";
+  panel.innerHTML=`<div class="player-head">
+      <div class="avatar">♟️</div>
+      <div><h2>${esc(username)}</h2><div class="sub">chargement…</div></div>
+      <button class="player-close" onclick="closePlayer()">✕</button>
+    </div><div class="mini-ratings"><div class="msg">Chargement des Elo…</div></div>`;
+  try{
+    const p=await fetchPlayer(username);
+    const head=panel.querySelector(".player-head");
+    head.querySelector(".sub").textContent=`${flag(p.country)} ${p.country||""} · classements par mode`;
+    const grid=panel.querySelector(".mini-ratings"); grid.innerHTML="";
+    const labels={bullet:"🚀 Bullet",blitz:"⚡ Blitz",standard:"🕒 Rapide","960":"🎲 Chess960",puzzlesbatl:"🧩 Puzzle Battle",puzzles:"🎓 Puzzles"};
+    p.ratings.forEach(r=>{
+      const d=document.createElement("div");
+      d.className="mini-card";
+      d.innerHTML=`<div class="m-title">${esc(labels[r.type]||r.type)}</div>
+        <div class="m-elo">${r.elo}</div>
+        <div class="m-meta">#${r.rank} mondial · max ${r.elo_best} · ${r.games} parties (${r.wins}V/${r.losses}D/${r.draws}N)</div>`;
+      grid.appendChild(d);
+    });
+    grid.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }catch(e){
+    panel.querySelector(".mini-ratings").innerHTML=`<div class="msg">${esc(e.message)}</div>`;
+  }
+}
+function closePlayer(){ $("playerPanel").className="player-panel"; }
+
+/* ---------- installation PWA ---------- */
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault(); deferredPrompt=e;
+  $("installBtn").classList.add("show");
+});
+$("installBtn").onclick=async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null; $("installBtn").classList.remove("show");
+};
+window.addEventListener("appinstalled", ()=>{ $("installBtn").classList.remove("show"); $("status").textContent="installée ✓"; });
+
+/* ---------- service worker ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{/* aperçu sandboxé : silencieux */});
+  });
+}
+
+/* ---------- events ---------- */
+$("refresh").onclick=()=>load(true);
+$("search").addEventListener("input", render);
+$("auto").onchange=e=>{
+  if(timer) clearInterval(timer), timer=null;
+  if(e.target.checked) timer=setInterval(()=>load(false), CFG.AUTO_REFRESH_SEC*1000);
+};
+
+buildTabs();
+load(true);
+</script>
+</body>
+</html>

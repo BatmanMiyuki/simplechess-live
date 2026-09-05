@@ -1,0 +1,50 @@
+{
+  "name": "SimpleChess — Classement en direct",
+  "short_name": "SimpleChess Live",
+  "description": "Classement mondial en direct de SimpleChess (bullet, blitz, rapide, chess960, puzzle battle).",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1419",
+  "theme_color": "#0f1419",
+  "categories": ["games", "sports"],
+  "icons": [
+    {
+      "src": "static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Bullet",
+      "short_name": "Bullet",
+      "url": "./?mode=bullet"
+    },
+    {
+      "name": "Blitz",
+      "short_name": "Blitz",
+      "url": "./?mode=blitz"
+    },
+    {
+      "name": "Rapide",
+      "short_name": "Rapide",
+      "url": "./?mode=standard"
+    }
+  ]
+}
