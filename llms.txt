@@ -1,0 +1,24 @@
+# ChessLive
+
+> Classements en direct (non officiels) des jeux d'échecs en ligne SimpleChess
+> (Europe Echecs) et SocialChess (Woodchop Software). Source : API publiques
+> des plateformes. Dernière mise à jour : 2026-09-05.
+
+Les données détaillées sont dans le fichier `public/llms-top.txt` :
+top 10 par mode pour chaque jeu, et `public/players.txt` : index des meilleurs
+joueurs (pseudo, Elo, rang, jeu).
+
+## Classements par jeu
+
+- [SimpleChess — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): bullet, blitz, rapide, chess960, puzzle battle
+- [SocialChess — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): Bullet, Blitz, Rapid, Chess960, Classical, Fast, Slow
+- [Pages HTML par classement](https://batmanmiyuki.github.io/simplechess-live/public/): top 100 avec statistiques
+- [Index des joueurs](https://batmanmiyuki.github.io/simplechess-live/public/players.txt): pseudo → Elo, rang, jeu
+- [Flux RSS](https://batmanmiyuki.github.io/simplechess-live/public/rss.xml): changements du top
+
+## Notes
+
+- Projets non officiels, à but informatif, non affiliés aux éditeurs des jeux.
+- Les classements changent en général une fois par jour (SimpleChess ~60 min,
+  SocialChess temps réel). Ce site est mis à jour quotidiennement.
+- Pour trouver un joueur, cherchez son pseudo dans `public/players.txt`.

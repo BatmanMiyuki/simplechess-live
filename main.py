@@ -20,15 +20,18 @@ Docs   :  http://localhost:8000/docs
 from __future__ import annotations
 
 import asyncio
+import io
 import json
 import time
+from pathlib import Path
 from typing import Any, Optional
 
+import csv as csvmod
 import httpx
 import websockets
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -405,6 +408,45 @@ async def modes() -> dict:
     return {"modes": list(MODES.values()), "count": len(MODES)}
 
 
+async def social_total_players(category: str) -> int | None:
+    """Total de joueurs classés dans une catégorie SocialChess.
+
+    Astuce : eloRanking du bas du classement (nearElo=1, ascending=true)
+    → le rang le plus élevé = nombre de joueurs classés dans la catégorie.
+    """
+    try:
+        j = await social_client.ask(
+            "usersByRank", {"nearElo": "1", "ascending": "true", "category": category})
+        users = (j or {}).get("usersByRank") or []
+        mx = 0
+        for u in users:
+            try:
+                mx = max(mx, int(((u.get("eloRanking") or {}).get(category)) or 0))
+            except (TypeError, ValueError):
+                continue
+        return mx or None
+    except Exception:
+        return None
+
+
+@app.get("/api/stats/{provider}", tags=["Système"])
+async def stats(provider: str) -> JSONResponse:
+    """Nombre total de joueurs classés, par mode (proxy des API amont)."""
+    provider = provider.lower()
+    if provider == "socialchess":
+        modes_out = {}
+        for cat in SOCIAL_TYPES:
+            modes_out[cat.lower()] = {"players_ranked": await social_total_players(cat)}
+        return JSONResponse({"provider": provider, "modes": modes_out, "note": ""})
+    if provider == "simplechess":
+        return JSONResponse({
+            "provider": provider,
+            "note": "SimpleChess ne publie pas le nombre total de joueurs classés (top 100 public uniquement).",
+            "modes": {},
+        })
+    raise HTTPException(status_code=404, detail="Provider inconnu (simplechess|socialchess)")
+
+
 @app.get("/api/leaderboard/{mode}", tags=["Classement"])
 async def leaderboard(
     mode: str,
@@ -413,6 +455,7 @@ async def leaderboard(
     country: Optional[str] = Query(None, description="Filtrer par code pays (ex. FRA / FR)"),
     search: Optional[str] = Query(None, description="Filtrer par pseudo (insensible à la casse)"),
     refresh: bool = Query(False, description="Forcer le rafraîchissement de l'API amont"),
+    format: str = Query("json", description="'json' ou 'csv' (export)"),
 ) -> JSONResponse:
     provider = provider.lower()
     if provider not in ("simplechess", "socialchess"):
@@ -487,6 +530,17 @@ async def leaderboard(
             needle = search.strip().lower()
             clean = [p for p in clean if needle in p["username"].lower()]
         top, mode_label = clean[:limit], cat
+
+    if format.lower() == "csv":
+        buf = io.StringIO()
+        w = csvmod.DictWriter(buf, fieldnames=["rank", "username", "title", "country",
+                                               "elo", "elo_best", "wins", "losses", "draws", "games"])
+        w.writeheader()
+        for p in top:
+            w.writerow({k: p.get(k, "") for k in ["rank", "username", "title", "country",
+                                                   "elo", "elo_best", "wins", "losses", "draws", "games"]})
+        return Response(content="\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": f"attachment; filename=chesslive-{provider}-{mode}.csv"})
 
     return JSONResponse({
         "provider": provider,
@@ -634,6 +688,32 @@ async def config() -> FileResponse:
     return FileResponse("config.js", media_type="application/javascript")
 
 
+# Fichiers de découverte SEO/IA (générés par gen_public.py) servis à la racine
+@app.get("/llms.txt", include_in_schema=False)
+async def llms_txt() -> FileResponse:
+    return FileResponse("llms.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/ai.txt", include_in_schema=False)
+async def ai_txt() -> FileResponse:
+    return FileResponse("ai.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt() -> FileResponse:
+    return FileResponse("robots.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml() -> FileResponse:
+    return FileResponse("sitemap.xml", media_type="application/xml")
+
+
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+_BASE_DIR = Path(__file__).resolve().parent
+
+app.mount("/static", StaticFiles(directory=str(_BASE_DIR / "static")), name="static")
+if (_BASE_DIR / "public").exists():
+    app.mount("/public", StaticFiles(directory=str(_BASE_DIR / "public"), html=True),
+              name="public")

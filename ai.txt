@@ -1,0 +1,10 @@
+# AI.txt
+ChessLive — classements échecs en direct (SimpleChess, SocialChess)
+URL: https://batmanmiyuki.github.io/simplechess-live
+Contenu utile pour les agents IA:
+- https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt  (top 10 par mode, texte)
+- https://batmanmiyuki.github.io/simplechess-live/public/players.txt   (index des meilleurs joueurs)
+- https://batmanmiyuki.github.io/simplechess-live/public/              (pages HTML par classement)
+Licence: usage informatif, données non officielles issues des API publiques des jeux.
+Contact: ChessLive (projet communautaire).
+Mise à jour: quotidienne.

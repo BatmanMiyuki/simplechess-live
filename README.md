@@ -1,6 +1,6 @@
 # ♟️ ChessLive
 
-**Classements échecs en direct** — PWA installable (installable, hors-ligne après 1ère visite, graphique d'évolution Elo).
+**Classements échecs en direct** — PWA installable (hors-ligne après 1ère visite, graphique d'évolution Elo).
 
 Deux jeux supportés, avec **switch intégré** :
 
@@ -9,10 +9,18 @@ Deux jeux supportés, avec **switch intégré** :
 | ♟️ **SimpleChess** (Europe Echecs) | Bullet · Blitz · Rapid · Chess960 · Puzzle Battle | `POST https://api.echecs.com/public/liveplay/top` (REST, CORS ouvert, sans clé) |
 | ⚔️ **SocialChess** (Woodchop Software) | Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow | `wss://api.socialchess.com?x=ws` (frame binaire `\x00` + JSON, commandes `usersByRank` / `getUser`) |
 
-Fonctionnalités : classement en direct par mode, **filtre par pays**, recherche,
-**profil joueur** (tous ses Elo + rang mondial), **graphique d'évolution Elo**
-(SimpleChess – API officielle `eloChartData`), et un **panneau « Mon compte »**
-(préconfiguré sur votre pseudo : ILoveKaroline 🚀).
+## ✨ Fonctionnalités (v3)
+
+- **Classement en direct** par mode + **filtre par pays**, recherche, auto-refresh
+- **Profil joueur** : tous ses Elo + rang mondial + **badges / palmarès** (12 badges : Elo 2000/2200/2400, top 10 mondial, 100 parties…)
+- **Carte de joueur partageable** (`PNG 1080×1350`) : gradient, cavalier, Elo par mode, palmarès — partage natif ou téléchargement
+- **Graphique d'évolution Elo** (SimpleChess – API officielle `eloChartData`) + **time-lapse local** : ChessLive mémorise le classement (1 mesure / 30 min) et trace l'évolution dans le profil et le compte
+- **Movers & Shakers** : tri par rang gagné, ▲/▼/NEW, « X en mouvement · Y nouveaux »
+- **Stats & totaux** : histogramme Elo du top + **nombre total de joueurs classés** (SocialChess : exact, via `eloRanking` du bas du classement ; SimpleChess : non publié par l'API amont → note honnête affichée)
+- **Classement par pays** : nb de joueurs, Elo moyen, meilleur — clic pour filtrer
+- **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
+- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : ILoveKaroline 🚀) : graphique + badges + mesures ChessLive
+- **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — y compris **ILoveKaroline #2 bullet & blitz** 😉
 
 ---
 
@@ -42,7 +50,7 @@ window.SC_CONFIG = {
 };
 ```
 
-## 🛠️ La FastAPI incluse (optionnelle : cache serveur, filtres, Swagger)
+## 🛠️ La FastAPI incluse (optionnelle : cache serveur, filtres, Swagger, exports)
 
 ```bash
 pip install -r requirements.txt
@@ -51,15 +59,36 @@ uvicorn main:app --host 0.0.0.0 --port 8000   # doc : /docs
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/leaderboard/{mode}?provider=simplechess` | Top SimpleChess (`bullet`, `blitz`, `standard`, `chess960`, `puzzlesbatl`) |
+| `GET /api/leaderboard/{mode}?provider=simplechess` | Top SimpleChess (`bullet`, `blitz`, `standard`, `chess960`, `puzzlesbatl`) — `&format=csv` pour l'export |
 | `GET /api/leaderboard/{mode}?provider=socialchess` | Top SocialChess (`Bullet`, `Blitz`, `Rapid`, `Chess960`, `Classical`, `Fast`, `Slow`) |
+| `GET /api/stats/{provider}` | **Total joueurs classés** par mode (SocialChess exact ; SimpleChess = note) |
 | `GET /api/player/{username}` · `.../rating/{mode}` | Profil + Elo SimpleChess |
 | `GET /api/player/{username}/history/{mode}` | **Graphique d'évolution Elo** (mensuel, période 1Y) |
 | `GET /api/player/social/{user_id}` | Profil SocialChess (via WebSocket) |
 | `GET /api/modes` · `/api/health` | Métadonnées |
 
 Filtres communs : `limit` (1-100), `country`, `search`, `refresh`.
-Cache mémoire TTL 60 s + anti-stampede + anti-abus.
+Cache mémoire TTL 60 s + anti-stampede + anti-abus. Sert aussi `public/`, `llms.txt`, `robots.txt`, `sitemap.xml`.
+
+## ☁️ Pages publiques IA/SEO (générées)
+
+`python3 gen_public.py` interroge les deux API et génère, **committé et rafraîchi
+quotidiennement par GitHub Actions** (`.github/workflows/refresh-public.yml`) :
+
+- `public/index.html` — hub des classements (liens top 100 par mode)
+- `public/top/{jeu}/{mode}/index.html` — page SEO par classement (JSON-LD Dataset, table top 100)
+- `public/llms-top.txt` — **top 10 par mode en texte brut** (le fichier que lisent les IA)
+- `public/players.txt` — index des meilleurs joueurs (pseudo → Elo, rang, jeu)
+- `public/rss.xml` — flux des changements du top
+- `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml` — conventions de découverte
+
+Résultat : « Qui est le n°1 mondial de bullet ? » → les IA à accès web trouvent
+`llms-top.txt` et répondent. ✅
+
+> ℹ️ **Total joueurs SocialChess** : chaque utilisateur porte un champ `eloRanking`
+> (rang global par catégorie) ; en scannant le bas du classement
+> (`nearElo:"1", ascending:"true"`) le rang max = total exact (ex. Bullet 5 331,
+> Blitz 12 908, Rapid 7 838 ; relevé 2026-09-05). SimpleChess ne le publie pas.
 
 ---
 
@@ -85,17 +114,24 @@ la voie publique.
 
 - **Projet non officiel** : non affilié à Europe Echecs / Woodchop Software.
   Les API amont peuvent changer à tout moment (mettre alors à jour les
-  constantes dans `index.html` / `main.py`).
+  constantes dans `index.html` / `main.py` / `gen_public.py`).
 - **Usage raisonnable** : ne pas poller les API amont à haute fréquence.
 - SocialChess ne fournit pas d'historique Elo public → graphique uniquement
-  pour SimpleChess (données officielles du jeu : mensuel, période 1Y).
+  pour SimpleChess (données officielles du jeu : mensuel, période 1Y) ; le
+  time-lapse ChessLive compense (mesures locales).
 - Le panneau « Mon compte » est lié à votre profil SimpleChess
   (`config.js` → `MY_USERNAME`).
+- Les snapshots locaux vivent dans `localStorage` (`chesslive-snapshots-v1`,
+  1 mesure / 30 min par jeu+mode, 480 max) : ils ne sortent pas du navigateur.
 
 ## 📁 Fichiers
 
-- `index.html` — **la PWA** (tout-en-un : UI + providers SimpleChess/SocialChess + graphique SVG)
+- `index.html` — **la PWA** (tout-en-un : UI + providers SimpleChess/SocialChess + graphique SVG + v3)
 - `config.js` — configuration (mode amont/api, compte, auto-refresh)
 - `manifest.webmanifest` + `sw.js` + `static/icons/*` — PWA installable, hors-ligne
-- `main.py` + `requirements.txt` — l'API FastAPI optionnelle (cache, Swagger, proxy WS)
+- `main.py` + `requirements.txt` — l'API FastAPI optionnelle (cache, Swagger, proxy WS, stats, CSV)
+- `gen_public.py` — générateur des pages publiques IA/SEO
+- `.github/workflows/refresh-public.yml` — rafraîchit `public/` tous les jours
+- `public/` · `llms.txt` · `ai.txt` · `robots.txt` · `sitemap.xml` — pages générées (committées)
+- `IDEAS.md` — feuille de route des idées (60+)
 - `README.md` — ce fichier

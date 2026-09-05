@@ -144,6 +144,34 @@
   footer{margin-top:32px; font-size:12px; color:var(--dim2); line-height:1.75; border-top:1px solid var(--line); padding-top:16px}
   footer code{background:var(--panel); padding:1px 6px; border-radius:6px; font-size:11px; color:var(--dim)}
   footer b{color:var(--dim)}
+  /* ---------- row2 : chips d'actions ---------- */
+  .row2{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center}
+  .chip{background:var(--panel); border:1px solid var(--line); color:var(--dim); padding:8px 13px; border-radius:10px; cursor:pointer; font-size:12.5px; font-weight:700; transition:.15s}
+  .chip:hover{color:var(--txt); border-color:var(--line2)}
+  .chip.on{border-color:var(--green); color:var(--green2); box-shadow:var(--glow)}
+  /* ---------- flèches mouvements ---------- */
+  .mover-up{color:var(--green2); font-size:11px; font-weight:800; line-height:1.1}
+  .mover-down{color:#f0927f; font-size:11px; font-weight:800; line-height:1.1}
+  .mover-new{color:var(--cyan); font-size:10px; font-weight:800; letter-spacing:.04em}
+  /* ---------- stats ---------- */
+  .statline{display:flex; gap:10px; flex-wrap:wrap; padding:16px 19px 4px}
+  .statline .box{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 14px; font-size:12px; color:var(--dim)}
+  .statline .box b{display:block; font-size:18px; color:var(--txt); font-weight:800}
+  .statline .box b.green{color:var(--green)}
+  .hist{display:flex; align-items:flex-end; gap:3px; height:120px; padding:18px 19px 4px}
+  .hist .bar{flex:1; background:linear-gradient(180deg,var(--green),rgba(63,167,214,.35)); border-radius:4px 4px 0 0; min-height:2px; position:relative}
+  .hist .bar span{position:absolute; top:-16px; left:0; right:0; text-align:center; font-size:10px; color:var(--dim2)}
+  .hist-labels{display:flex; justify-content:space-between; padding:4px 19px 10px; font-size:10.5px; color:var(--dim2)}
+  /* ---------- badges / pays / partage ---------- */
+  .brandges{display:flex; gap:8px; flex-wrap:wrap; padding:16px 19px 2px}
+  .badge2{display:inline-flex; align-items:center; gap:6px; background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:12px; color:var(--dim2)}
+  .badge2.earned{border-color:rgba(242,201,76,.55); color:var(--gold); background:rgba(242,201,76,.07); box-shadow:0 0 12px rgba(242,201,76,.12)}
+  .country-row{display:flex; align-items:center; gap:12px; padding:11px 19px; border-bottom:1px solid #1a2632; cursor:pointer; font-size:13.5px; flex-wrap:wrap}
+  .country-row:hover{background:#1a2531}
+  .country-row .c-count{margin-left:auto; color:var(--dim2); font-size:12px; text-align:right}
+  .country-row .c-avg{color:var(--green); font-weight:700}
+  .share-btn{display:inline-flex; align-items:center; gap:7px; background:linear-gradient(135deg,var(--cyan),#2d7fa8); border:none; color:#04121c; padding:9px 15px; border-radius:999px; font-size:12.5px; font-weight:800; cursor:pointer}
+  .share-btn:hover{filter:brightness(1.12)}
   @media (max-width:680px){
     h1{font-size:20px} .badge{display:none}
     .game-switch{width:100%} .game-switch button{flex:1; justify-content:center; padding:11px 8px; font-size:13px}
@@ -172,6 +200,8 @@
 
   <div class="panel" id="playerPanel"></div>
   <div class="panel" id="accountPanel"></div>
+  <div class="panel" id="statsPanel"></div>
+  <div class="panel" id="countriesPanel"></div>
 
   <div class="toolbar">
     <input id="search" type="search" placeholder="Rechercher un joueur…">
@@ -179,6 +209,15 @@
     <label><input type="checkbox" id="auto"> Auto (60 s)</label>
     <button class="refresh-btn" id="refresh">↻ Actualiser</button>
     <span class="update" id="update"></span>
+  </div>
+
+  <div class="row2">
+    <button class="chip" id="btnMovers">📈 Mouvements</button>
+    <button class="chip" id="btnCountries">🌍 Joueurs par pays</button>
+    <button class="chip" id="btnStats">📊 Stats &amp; total joueurs</button>
+    <button class="chip" id="btnCSV">⬇️ CSV</button>
+    <button class="chip" id="btnJSON">⬇️ JSON</button>
+    <span class="update" id="moversInfo"></span>
   </div>
 
   <div class="table-card">
@@ -205,6 +244,7 @@
     Données : API publique SimpleChess (api.echecs.com) et WebSocket SocialChess (api.socialchess.com), mises en cache localement.
     <br>Modes disponibles : SimpleChess <code>bullet · blitz · standard · chess960 · puzzlesbatl</code> ·
     SocialChess <code>Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow</code> · Docs API : <code>/docs</code>
+    <br>🤖 Pages publiques lisibles par les IA (top 10, classements) : <a href="./public/" style="color:var(--cyan)">public/index.html</a> · <a href="./llms.txt" style="color:var(--cyan)">llms.txt</a> · <a href="./public/llms-top.txt" style="color:var(--cyan)">llms-top.txt</a>
   </footer>
 </div>
 
@@ -505,6 +545,7 @@ async function load(force=false){
     let res = getCached(key);
     if(!res || force){ res = await p.leaderboard(state.mode); setCached(key,res); }
     lastPlayers = res.rows;
+    snapSave(state.game, state.mode, res.rows);   // A1 : snapshot 1/30 min
     $("sourceInfo").textContent="Source : "+res.source;
     populateCountries();
     render();
@@ -519,15 +560,24 @@ const hasFlagEmoji = s => /[\u{1F1E6}-\u{1F1FF}]/u.test(s||"");
 function render(){
   const needle=$("search").value.trim().toLowerCase();
   const cc=$("countryFilter").value;
-  const rows=lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc));
+  const rows=applyMoversSort(lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
   const tb=$("tbody"); tb.innerHTML="";
   if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`; }
+  if(moversOn){
+    const info=$("moversInfo");
+    const n=lastPlayers.length;
+    let moved=0, news=0;
+    lastPlayers.forEach(p=>{ const m=moverState(state.game,state.mode,p);
+      if(m&&m.kind==="new") news++; else if(m&&m.dr!==0) moved++; });
+    info.textContent=`${moved} en mouvement · ${news} nouveaux dans le top ${n} (depuis les mesures ChessLive)`;
+  } else $("moversInfo").textContent="";
   rows.forEach(p=>{
     const tr=document.createElement("tr");
     tr.className=(p.rank<=3?"top"+p.rank:"")+" clickable";
     const flag = hasFlagEmoji(p.name) ? "" : flagEmoji(p.country);
+    const mvCell = moverCell(moverState(state.game,state.mode,p));
     tr.innerHTML=`
-      <td class="rank">${p.rank}</td>
+      <td class="rank">${p.rank}${mvCell?"<br>":""}${mvCell}</td>
       <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
       <td><span class="sub">${esc(p.country||"—")}</span></td>
       <td style="text-align:right" class="elo">${p.elo||"—"}</td>
@@ -577,6 +627,16 @@ async function showPlayer(p){
         ${r.rank?`<span class="m-rank">#${r.rank} mondial</span>`:""}`;
       grid.appendChild(d);
     });
+    // B4 — badges / palmarès
+    const b4=computeBadges(data.ratings);
+    data.badges=b4;
+    const bd=document.createElement("div"); bd.innerHTML=badgesHtml(b4);
+    grid.after(bd);
+    // B9 — carte partageable
+    const shareBtn=document.createElement("button");
+    shareBtn.className="share-btn"; shareBtn.textContent="🖼️ Partager la carte";
+    shareBtn.onclick=()=>shareCard(data);
+    panel.querySelector(".panel-close").before(shareBtn);
     // graphique d'évolution (SimpleChess uniquement)
     const block=document.createElement("div");
     block.className="chart-block";
@@ -591,6 +651,13 @@ async function showPlayer(p){
       $("chartBox").innerHTML=`<div class="chart-note">SocialChess ne fournit pas d'historique Elo public — les statistiques ci-dessus sont celles du jour.</div>`;
       $("chartTitle").innerHTML=`📈 Évolution Elo <span class="delta flat">historique non disponible</span>`;
     }
+    // A1 — mesures ChessLive (snapshots locaux, 1/30 min)
+    const snapHist=historyFromSnapshots(state.game,state.mode,p.name);
+    const snapBlock=document.createElement("div");
+    snapBlock.className="chart-block";
+    snapBlock.innerHTML=`<h3>⏱️ Évolution — mesures ChessLive</h3><div id="snapBox"><div class="chart-note">Collecte en cours… (1 mesure toutes les 30 min, 2+ nécessaires pour tracer)</div></div>`;
+    panel.appendChild(snapBlock);
+    if(snapHist) drawChart($("snapBox"), snapHist, `${esc(p.name)} · mesures ChessLive`);
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
   }catch(e){
     panel.querySelector(".stats-grid").innerHTML=`<div class="msg">${esc(e.message)}</div>`;
@@ -680,15 +747,27 @@ async function showAccount(){
       });
     };
     renderCards();
+    // B4 — badges du compte
+    const myBadges=computeBadges(data.ratings);
+    const bd=document.createElement("div"); bd.innerHTML=badgesHtml(myBadges);
+    grid.after(bd);
     const block=document.createElement("div");
     block.className="chart-block";
     block.innerHTML=`<h3 id="myChartTitle">📈 Évolution Elo</h3><div id="myChartBox"><div class="msg">Choisissez un mode ci-dessus</div></div>`;
     panel.appendChild(block);
+    // A1 — mesures ChessLive du compte
+    const snapBlock=document.createElement("div");
+    snapBlock.className="chart-block";
+    snapBlock.innerHTML=`<h3>⏱️ Évolution — vos mesures ChessLive</h3><div id="mySnapBox"><div class="chart-note">Collecte en cours… (1 mesure toutes les 30 min, 2+ nécessaires)</div></div>`;
+    panel.appendChild(snapBlock);
     async function drawMyChart(mode){
       try{
         const hist = await SimpleChess.history(CFG.MY_USERNAME, mode);
         $("myChartBox").innerHTML='<div class="msg">…</div>';
         drawChart($("myChartBox"), hist, `${esc(CFG.MY_USERNAME)} · ${esc(M_ICONS[mode]||"")} ${esc((GAMES.simplechess.modes.find(m=>m[0]===mode)||[,""])[1])}`);
+        const sh=historyFromSnapshots("simplechess", mode, CFG.MY_USERNAME);
+        if(sh) drawChart($("mySnapBox"), sh, `${esc(CFG.MY_USERNAME)} · vos mesures ChessLive`);
+        else $("mySnapBox").innerHTML=`<div class="chart-note">Pas encore assez de mesures (2+ nécessaires, 1 toutes les 30 min).</div>`;
       }catch(e){ $("myChartBox").innerHTML=`<div class="chart-note">Graphique indisponible : ${esc(e.message)}</div>`; }
     }
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
@@ -714,8 +793,269 @@ if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
 
+/* =========================================================
+   A1+A2 — SNAPSHOTS & MOUVEMENTS (mesures ChessLive locales)
+   1 snapshot par (jeu, mode) toutes les 30 min, conservé ~10 jours
+   ========================================================= */
+const SNAP_KEY="chesslive-snapshots-v1";
+function snapStore(){ try{ return JSON.parse(localStorage.getItem(SNAP_KEY)||'{"s":{}}'); }catch(e){ return {"s":{}}; } }
+function snapSave(game,mode,rows){
+  try{
+    const st=snapStore(), key=game+":"+mode, now=Date.now();
+    const list=st.s[key]||[];
+    const last=list[list.length-1];
+    if(last && now-last.t < 30*60000) return;            // 1 mesure / 30 min
+    list.push({t:now, players:rows.slice(0,25).map(p=>({n:p.name,r:p.rank,e:p.elo}))});
+    if(list.length>480) list.splice(0,list.length-480);
+    st.s[key]=list; localStorage.setItem(SNAP_KEY,JSON.stringify(st));
+  }catch(e){}
+}
+function moverState(game,mode,p){
+  try{
+    const list=(snapStore().s[game+":"+mode]||[]);
+    if(!list.length) return null;
+    const now=Date.now();
+    let old=null;
+    for(const s of list){ if((now-s.t)/86400000<=7){ old=s; break; } }
+    if(!old) old=list[0];
+    const e=old.players.find(x=>x.n===p.name);
+    if(!e) return {kind:"new"};
+    return {kind:"moved", dr:e.r-p.rank, de:p.elo-e.e, days:Math.max(0.02,(now-old.t)/86400000)};
+  }catch(e){ return null; }
+}
+function moverCell(mv){
+  if(!mv) return "";
+  if(mv.kind==="new") return `<div class="mover-new">NEW</div>`;
+  if(mv.dr>0) return `<div class="mover-up">▲${mv.dr}</div>`;
+  if(mv.dr<0) return `<div class="mover-down">▼${-mv.dr}</div>`;
+  return `<div class="mover-up" style="opacity:.4">•</div>`;
+}
+let moversOn=false;
+function applyMoversSort(rows){
+  if(!moversOn) return rows;
+  return [...rows].sort((a,b)=>{
+    const ma=moverState(state.game,state.mode,a), mb=moverState(state.game,state.mode,b);
+    const ka=(!ma)?0:(ma.kind==="new"?1e9:ma.dr), kb=(!mb)?0:(mb.kind==="new"?1e9:mb.dr);
+    return kb-ka;
+  });
+}
+function historyFromSnapshots(game,mode,name){
+  const list=(snapStore().s[game+":"+mode]||[]);
+  const pts=list.map(s=>{ const e=s.players.find(x=>x.n===name); return e?{t:s.t,e:e.e}:null; }).filter(Boolean);
+  if(pts.length<2) return null;
+  return {labels:pts.map(p=>new Date(p.t).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit"})),
+    values:pts.map(p=>p.e), games:0,wins:0,losses:0,draws:0,
+    note:"Vos mesures ChessLive (auto, 1/30 min) — "+pts.length+" points",
+    eloMin:Math.min(...pts.map(p=>p.e)), eloMax:Math.max(...pts.map(p=>p.e)), oppAvg:0};
+}
+
+/* =========================================================
+   A6 — TOTAUX DE JOUEURS & HISTOGRAMME
+   SocialChess : total exact via eloRanking du bas du classement.
+   SimpleChess : l'API amont ne publie pas ce chiffre (top 100 public).
+   ========================================================= */
+const TOTALS_KEY="chesslive-totals-v1";
+function totalsCacheGet(){ try{ return JSON.parse(localStorage.getItem(TOTALS_KEY)||'{}'); }catch(e){ return {}; } }
+function totalsCacheSet(o){ try{ localStorage.setItem(TOTALS_KEY,JSON.stringify(o)); }catch(e){} }
+async function providerTotals(){
+  if(CFG.API_MODE==="api"){
+    const r=await fetch(`${CFG.API_BASE}/api/stats/${state.game}`);
+    const j=await r.json();
+    return {byMode:j.modes||{}, note:j.note||""};
+  }
+  const cache=totalsCacheGet(), key=state.game+":all";
+  if(cache[key] && Date.now()-cache[key].t<3600e3) return cache[key].v;
+  let res;
+  if(state.game==="socialchess"){
+    const byMode={};
+    for(const [id] of GAMES.socialchess.modes){
+      try{
+        const j=await SocialChessWS.ask("usersByRank",{nearElo:"1",ascending:"true",category:id});
+        const users=(j&&j.usersByRank)||[];
+        const mx=users.reduce((m,u)=>Math.max(m, +(((u.eloRanking||{})[id]||0))),0);
+        byMode[id]=mx||null;
+      }catch(e){ byMode[id]=null; }
+    }
+    res={byMode, note:""};
+  } else {
+    res={byMode:{}, note:"SimpleChess ne publie pas le nombre total de joueurs classés (top 100 public uniquement)."};
+  }
+  cache[key]={t:Date.now(), v:res};
+  totalsCacheSet(cache);
+  return res;
+}
+function histogramData(rows){
+  const elos=rows.map(p=>p.elo).filter(Boolean);
+  if(!elos.length) return null;
+  const lo=Math.floor(Math.min(...elos)/50)*50, hi=Math.ceil(Math.max(...elos)/50)*50;
+  const b={};
+  for(let e=lo;e<=hi;e+=50) b[e]=0;
+  elos.forEach(e=>{ b[Math.floor(e/50)*50]++; });
+  return b;
+}
+async function openStats(){
+  closePanels();
+  const panel=$("statsPanel");
+  panel.className="panel show";
+  panel.innerHTML=`<div class="panel-head"><div class="avatar">📊</div>
+    <div><h2>Stats — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">total joueurs classés &amp; répartition des Elo</div></div>
+    <button class="panel-close" onclick="closePanels()">✕</button></div>
+    <div class="msg">Calcul…</div>`;
+  const h=histogramData(lastPlayers);
+  let hist="";
+  if(h){
+    const ks=Object.keys(h).map(Number), m=Math.max(...Object.values(h),1);
+    hist=`<div class="hist">`+ks.map(k=>`<div class="bar" style="height:${Math.max(2.5,h[k]/m*100)}%" title="${k}–${k+49} : ${h[k]} joueur(s)"><span>${h[k]}</span></div>`).join("")+`</div>
+      <div class="hist-labels"><span>${ks[0]} Elo</span><span>${ks[ks.length-1]} Elo</span></div>
+      <div class="chart-note" style="padding:0 19px 14px">Répartition des Elo dans le top ${lastPlayers.length} actuel (tranches de 50).</div>`;
+  }
+  let totHtml="<div class='statline'>";
+  let totals=null;
+  try{ totals=await providerTotals(); }catch(e){}
+  if(totals && totals.byMode && Object.keys(totals.byMode).length){
+    curGame().modes.forEach(([id])=>{
+      const n=totals.byMode[id];
+      totHtml+=`<div class="box">${M_ICONS[id]||"♟"} <b class="${n?'green':''}">${n?n.toLocaleString("fr-FR"):"—"}</b>${esc(id)} · classés</div>`;
+    });
+  }
+  if(totals && totals.note) totHtml+=`<div class="box" style="max-width:430px">ℹ️ ${esc(totals.note)}</div>`;
+  totHtml+="</div>";
+  panel.innerHTML=`<div class="panel-head"><div class="avatar">📊</div>
+    <div><h2>Stats — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">total joueurs classés &amp; répartition des Elo</div></div>
+    <button class="panel-close" onclick="closePanels()">✕</button></div>
+    ${totHtml}${hist||'<div class="msg">Pas de données pour l\'histogramme.</div>'}`;
+  panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+/* =========================================================
+   A3 — JOUEURS PAR PAYS
+   ========================================================= */
+function openCountries(){
+  closePanels();
+  const agg={};
+  lastPlayers.forEach(p=>{
+    const c=p.country||"—";
+    const a=agg[c]=agg[c]||{n:0,elos:[],best:null};
+    a.n++; if(p.elo) a.elos.push(p.elo);
+    if(!a.best || p.elo>a.best.elo) a.best=p;
+  });
+  const avg=a=>a.elos.length? Math.round(a.elos.reduce((s,e)=>s+e,0)/a.elos.length) : null;
+  const rows=Object.entries(agg).sort((a,b)=> b[1].n-a[1].n || ((avg(b[1])||0)-(avg(a[1])||0)));
+  const list=rows.map(([c,a])=>`<div class="country-row" onclick="setCountry('${esc(c)}')">
+      <span style="font-size:20px">${flagEmoji(c)}</span><b>${esc(c)}</b>
+      <span class="c-avg">${avg(a)??"—"} Elo moy.</span>
+      <span class="c-count">${a.n} joueur(s) · meilleur : ${esc(a.best?a.best.name:"—")} ${a.best?("("+a.best.elo+")"):""} → filtrer</span>
+    </div>`).join("");
+  $("countriesPanel").className="panel show";
+  $("countriesPanel").innerHTML=`<div class="panel-head"><div class="avatar">🌍</div>
+    <div><h2>Joueurs par pays — ${esc(curGame().name)} · ${esc(curModeLabel())}</h2><div class="sub">top ${lastPlayers.length} actuel · cliquez pour filtrer le classement</div></div>
+    <button class="panel-close" onclick="closePanels()">✕</button></div>${list}`;
+  $("countriesPanel").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function setCountry(c){ if(c!=="—"){ $("countryFilter").value=c; render(); } closePanels(); }
+
+/* =========================================================
+   A11 — EXPORT CSV / JSON
+   ========================================================= */
+function dlBlob(blob,name){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function exportRows(fmt){
+  const rows=lastPlayers;
+  if(!rows.length){ alert("Aucune donnée à exporter."); return; }
+  const stamp=new Date().toISOString().slice(0,10);
+  const fname=`chesslive-${state.game}-${state.mode}-${stamp}`;
+  if(fmt==="csv"){
+    const head=["rank","username","country","elo","elo_best","wins","losses","draws","games"];
+    const csv=[head.join(","), ...rows.map(p=>[p.rank,`"${esc(p.name).replace(/"/g,'""')}"`,p.country,p.elo,p.eloBest,p.wins,p.losses,p.draws,p.games].join(","))].join("\n");
+    dlBlob(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}), fname+".csv");
+  } else {
+    const j={generated_at:new Date().toISOString(), app:"ChessLive", game:state.game, mode:state.mode,
+      provider:curGame().name, count:rows.length, top:rows};
+    dlBlob(new Blob([JSON.stringify(j,null,2)],{type:"application/json"}), fname+".json");
+  }
+}
+
+/* =========================================================
+   B4 — BADGES / PALMARÈS
+   ========================================================= */
+function computeBadges(ratings){
+  const a=ratings.reduce((acc,r)=>({
+    g:acc.g+(r.games||0), w:acc.w+(r.wins||0),
+    mb:Math.max(acc.mb, r.eloBest||r.elo||0),
+    bestRank:Math.min(acc.bestRank, r.rank||Infinity)
+  }),{g:0,w:0,mb:0,bestRank:Infinity});
+  const B=[]; const add=(icon,label,ok)=>B.push({icon,label,ok});
+  add("♟️","100 parties",a.g>=100);
+  add("👑","1 000 parties",a.g>=1000);
+  add("💎","10 000 parties",a.g>=10000);
+  add("🔥","500 victoires",a.w>=500);
+  add("🎯","2 000 Elo",a.mb>=2000);
+  add("🚀","2 200 Elo",a.mb>=2200);
+  add("⚡","2 400 Elo",a.mb>=2400);
+  add("🌌","2 600 Elo",a.mb>=2600);
+  add("🥇","N°1 mondial",a.bestRank===1);
+  add("🥈","Top 10 mondial",a.bestRank<=10);
+  add("🥉","Top 50 mondial",a.bestRank<=50);
+  add("🏅","Top 100 mondial",a.bestRank<=100);
+  return {badges:B, done:B.filter(b=>b.ok).length, total:B.length};
+}
+function badgesHtml(b){
+  return `<div class="brandges"><span class="sub" style="width:100%;margin-bottom:2px">Palmarès : ${b.done}/${b.total} badges débloqués</span>`+
+    b.badges.map(x=>`<span class="badge2 ${x.ok?"earned":""}" title="${esc(x.label)}">${x.icon} ${esc(x.label)}${x.ok?"":" (à débloquer)"}</span>`).join("")+`</div>`;
+}
+
+/* =========================================================
+   B9 — CARTE DE JOUEUR PARTAGEABLE (PNG 1080×1350)
+   ========================================================= */
+async function shareCard(data){
+  const W=1080,H=1350;
+  const lines=(data.ratings||[]).slice(0,6).map((r,i)=>`<g transform="translate(90,${620+i*92})">
+      <rect width="900" height="74" rx="18" fill="#16202b" stroke="#22303f" stroke-width="1.5"/>
+      <text x="40" y="48" fill="#8fa0b0" font-size="30" font-family="Arial,Helvetica">${esc(r.label||r.mode)}</text>
+      <text x="860" y="50" fill="#7fdb6a" font-size="38" font-weight="bold" text-anchor="end" font-family="Arial,Helvetica">${r.elo??"—"}</text>
+    </g>`).join("");
+  const b=data.badges;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a22"/><stop offset="1" stop-color="#0a0e13"/></linearGradient>
+      <radialGradient id="glow" cx=".5" cy=".10" r=".55"><stop offset="0" stop-color="#7fdb6a" stop-opacity=".20"/><stop offset="1" stop-color="#7fdb6a" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#bg)"/>
+    <rect width="${W}" height="${H}" fill="url(#glow)"/>
+    <g transform="translate(540,150) scale(11)">
+      <path d="M-6-3.5C-6-7 -2-10 1.5-9.8 5-9.6 7.5-7 7.7-4.3 7.9-1.4 6.7.5 5.5 2.6 4.7 4.2 4.2 5.4 4.2 7.6h-6.4c0-3-.8-5-2.2-7.2C-5.6-1.8-6-3-6-3.5Z" fill="#eef4f8"/>
+      <circle cx="1" cy="-6" r="0.9" fill="#0a0e13"/>
+    </g>
+    <text x="540" y="392" fill="#ffffff" font-size="66" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica">${esc(data.name)}</text>
+    <text x="540" y="444" fill="#8fa0b0" font-size="32" text-anchor="middle" font-family="Arial,Helvetica">${flagEmoji(data.country)} ${esc(data.country||"—")} · ${esc(curGame().name)}</text>
+    ${lines}
+    <text x="540" y="1198" fill="#66788a" font-size="27" text-anchor="middle" font-family="Arial,Helvetica">${b?("Palmarès "+b.done+"/"+b.total+" badges"):""}</text>
+    <text x="540" y="1252" fill="#66788a" font-size="26" text-anchor="middle" font-family="Arial,Helvetica">ChessLive — classements en direct (projet non officiel) · ${new Date().toLocaleDateString("fr-FR")}</text>
+  </svg>`;
+  const img=new Image();
+  await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej;
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); });
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  cv.getContext("2d").drawImage(img,0,0,W,H);
+  const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+  const fname=`chesslive-${String(data.name).replace(/[^a-z0-9]+/gi,"-").slice(0,40)}.png`;
+  const file=new File([blob],fname,{type:"image/png"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:"ChessLive — "+data.name}); return; }catch(e){}
+  }
+  dlBlob(blob,fname);
+}
+
 /* ---------- events ---------- */
 $("refresh").onclick=()=>load(true);
+$("btnMovers").onclick=()=>{ moversOn=!moversOn; $("btnMovers").classList.toggle("on",moversOn); render(); };
+$("btnCountries").onclick=openCountries;
+$("btnStats").onclick=openStats;
+$("btnCSV").onclick=()=>exportRows("csv");
+$("btnJSON").onclick=()=>exportRows("json");
 $("search").addEventListener("input", render);
 $("countryFilter").addEventListener("change", render);
 $("accountBtn").onclick=showAccount;
