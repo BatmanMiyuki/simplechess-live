@@ -13,17 +13,37 @@ endpoint.
 
 ---
 
-## 🚀 Démarrage
+## 📱 Version PWA installable
+
+L'app est une **PWA** : manifest + service worker + icônes. Utilisable dans le
+navigateur, installable sur l'écran d'accueil (bouton « Installer l'app ») et
+**consultable hors connexion** (la dernière copie du classement est mise en
+cache). `config.js` permet deux modes :
+
+| Mode | Description |
+|---|---|
+| `amont` (défaut) | La PWA appelle **directement** `api.echecs.com` (CORS ouvert, aucune clé) — **aucun backend requis**, hébergeable en statique |
+| `api` | La PWA passe par la FastAPI incluse (cache serveur + filtres) — renseigner `API_BASE` |
+
+### Déploiement GitHub Pages
+
+1. Créez un dépôt public (ex. `simplechess-live`) sur GitHub (sans README).
+2. Poussez le contenu de ce dossier sur la branche `main`.
+3. Settings → Pages → **Deploy from a branch** → `main` / racine.
+4. L'app est en ligne sur `https://<user>.github.io/simplechess-live/` — et
+   installable en PWA (⚠️ mode `amont` uniquement ; le mode `api` n'a pas de
+   vrai serveur sur Pages).
+
+### Backend optionnel
 
 ```bash
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-- Tableau de bord : <http://localhost:8000/>
-- Documentation interactive (Swagger) : <http://localhost:8000/docs>
+Puis dans `config.js` : `API_MODE: "api"`, `API_BASE: "https://votre-api.url"`.
 
-## 📡 Endpoints
+## 📡 Endpoints de l'API
 
 ### `GET /api/leaderboard/{mode}` — Top 100 mondial d'un mode
 
