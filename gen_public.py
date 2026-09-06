@@ -4,7 +4,7 @@ gen_public.py — Génère les pages publiques "crawlables" de ChessLive.
 
 Objectif : être trouvé par les moteurs de recherche ET les IA (GPT, Claude,
 Perplexity...) . Quand quelqu'un demande à une IA "qui est le top 1 en bullet
-sur SimpleChess ?" ou "quel est l'Elo de ILoveKaroline ?", l'IA avec accès web
+sur SimpleChess ?" ou "quel est l'Elo du n°1 mondial ?", l'IA avec accès web
 trouve ces pages statiques et peut répondre.
 
 Produit (commité, rafraîchi par GitHub Actions une fois par jour) :

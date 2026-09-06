@@ -19,8 +19,8 @@ Deux jeux supportés, avec **switch intégré** :
 - **Stats & totaux** : histogramme Elo du top + **nombre total de joueurs classés** (SocialChess : exact, via `eloRanking` du bas du classement ; SimpleChess : non publié par l'API amont → note honnête affichée)
 - **Classement par pays** : nb de joueurs, Elo moyen, meilleur — clic pour filtrer
 - **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
-- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : ILoveKaroline 🚀) : graphique + mesures ChessLive
-- **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — y compris **ILoveKaroline #2 bullet & blitz** 😉
+- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : Miyukipa 🏆) : graphique + mesures ChessLive
+- **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — **Miyukipa #1 bullet, blitz & rapid** 😉
 
 ---
 
@@ -44,7 +44,7 @@ window.SC_CONFIG = {
   API_MODE: "amont",            // "amont" (statique) | "api" (backend FastAPI)
   API_BASE: "",                 // ex. "https://mon-api.up.railway.app" (mode api)
   DEFAULT_GAME: "simplechess",  // jeu ouvert par défaut
-  MY_USERNAME: "ILoveKaroline", // votre compte SimpleChess (panneau stats)
+  MY_USERNAME: "Miyukipa", // votre compte SimpleChess (panneau stats)
   MY_USERNAME_SC: "",           // votre pseudo SocialChess (optionnel)
   AUTO_REFRESH_SEC: 60,
 };

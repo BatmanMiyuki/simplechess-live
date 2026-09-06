@@ -16,8 +16,9 @@ window.SC_CONFIG = {
 
   /* Ton compte :
      - MY_USERNAME      : pseudo SimpleChess (profil + graphique d'évolution)
-     - MY_USERNAME_SC   : pseudo SocialChess (optionnel, pour l'import) */
-  MY_USERNAME: "ILoveKaroline",
+     - MY_USERNAME_SC   : pseudo SocialChess (optionnel, pour l'import)
+     (Ancien compte : "ILoveKaroline" — remplacer ici pour y revenir.) */
+  MY_USERNAME: "Miyukipa",
   MY_USERNAME_SC: "",
 
   /* Rafraîchissement automatique du classement (secondes) */
