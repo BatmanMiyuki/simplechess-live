@@ -1,4 +1,4 @@
-ChessLive — Top Puzzle Battle simplechess (2026-09-05)
+ChessLive — Top Puzzle Battle simplechess (2026-09-06)
 1. GillesLeGrand — Elo 2601 (max 2626, 472 parties, 455V/14D/3N, pays USA)
 2. Inspire — Elo 2454 (max 2631, 2087 parties, 1909V/169D/9N, pays FRA)
 3. nikopoulos — Elo 2348 (max 2348, 123 parties, 117V/4D/2N, pays FRA)

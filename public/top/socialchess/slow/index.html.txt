@@ -1,5 +1,5 @@
-ChessLive — Top Slow socialchess (2026-09-05)
-Total joueurs classés : 14970
+ChessLive — Top Slow socialchess (2026-09-06)
+Total joueurs classés : 14974
 1. TheBigKat — Elo 2282 (max 2282, 346 parties, 100V/37D/209N, pays US)
 2. FLH — Elo 2260 (max 2260, 189 parties, 35V/12D/142N, pays NL)
 3. mac1956 — Elo 2238 (max 2238, 392 parties, 91V/33D/268N, pays ES)

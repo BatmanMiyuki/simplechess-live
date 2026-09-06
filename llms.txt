@@ -2,7 +2,7 @@
 
 > Classements en direct (non officiels) des jeux d'échecs en ligne SimpleChess
 > (Europe Echecs) et SocialChess (Woodchop Software). Source : API publiques
-> des plateformes. Dernière mise à jour : 2026-09-05.
+> des plateformes. Dernière mise à jour : 2026-09-06.
 
 Les données détaillées sont dans le fichier `public/llms-top.txt` :
 top 10 par mode pour chaque jeu, et `public/players.txt` : index des meilleurs

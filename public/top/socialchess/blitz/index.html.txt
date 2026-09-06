@@ -1,5 +1,5 @@
-ChessLive — Top Blitz socialchess (2026-09-05)
-Total joueurs classés : 12908
+ChessLive — Top Blitz socialchess (2026-09-06)
+Total joueurs classés : 12914
 1. 🇱🇧 Alain 🇱🇧 — Elo 2444 (max 2444, 396 parties, 367V/25D/4N, pays LB)
 2. KIYO_KUM — Elo 2400 (max 2400, 1619 parties, 1579V/12D/28N, pays PE)
 3. iSwall0w — Elo 2360 (max 2360, 1126 parties, 1111V/10D/5N, pays US)

@@ -1,5 +1,5 @@
-ChessLive — Top Chess960 socialchess (2026-09-05)
-Total joueurs classés : 2914
+ChessLive — Top Chess960 socialchess (2026-09-06)
+Total joueurs classés : 2917
 1. EttoreWalter — Elo 2178 (max 2178, 19 parties, 11V/8D/0N, pays ES)
 2. Taiger  — Elo 2108 (max 2108, 38319 parties, 34065V/3405D/849N, pays MX)
 3. sdeiana — Elo 2104 (max 2104, 138 parties, 121V/8D/9N, pays IT)
