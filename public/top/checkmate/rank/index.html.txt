@@ -1,5 +1,5 @@
 ChessLive — Top Classement (Elo) checkmate (2026-09-12)
-Comptes au total : 877724
+Comptes au total : 877721
 1. Oferbruk — Elo 2887 (7601 parties, 7042V/517D/42N, 25310 points de puzzles, pays IL)
 2. Khalid82 — Elo 2887 (3353 parties, 2188V/1088D/77N, 1000 points de puzzles, pays SD)
 3. rast_max22rus — Elo 2887 (2870 parties, 1979V/826D/65N, 6387 points de puzzles, pays RU)
@@ -8,5 +8,5 @@ Comptes au total : 877724
 6. SharkFish — Elo 2887 (1587 parties, 1085V/435D/67N, 801 points de puzzles, pays SD)
 7. sangermajidi — Elo 2887 (1382 parties, 941V/430D/11N, 7889 points de puzzles, pays AF)
 8. IKRASH-912326 — Elo 2887 (1251 parties, 1013V/224D/14N, 6202 points de puzzles, pays PK)
-9. humayonmajidi2 — Elo 2885 (374 parties, 279V/66D/29N, 24000 points de puzzles, pays AF)
+9. humayonmajidi2 — Elo 2885 (377 parties, 282V/66D/29N, 24000 points de puzzles, pays AF)
 10. Sultan2 — Elo 2887 (2181 parties, 415V/1760D/6N, 3447 points de puzzles, pays AF)

@@ -14,7 +14,7 @@ joueurs (pseudo, Elo, rang, jeu).
 
 - [SimpleChess — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): bullet, blitz, rapide, chess960, puzzle battle
 - [SocialChess — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): Bullet, Blitz, Rapid, Chess960, Classical, Fast, Slow
-- [Checkmate — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): classement unique (Elo, victoires, points de puzzles)
+- [Checkmate — top 10 (texte, recommandé)](https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt): classement mondial + classement France (rangs officiels)
 - [Pages HTML par classement](https://batmanmiyuki.github.io/simplechess-live/public/): top 100 avec statistiques
 - [Index des joueurs](https://batmanmiyuki.github.io/simplechess-live/public/players.txt): pseudo → Elo, rang, jeu
 - [Flux RSS](https://batmanmiyuki.github.io/simplechess-live/public/rss.xml): changements du top

@@ -31,6 +31,19 @@ window.SC_CONFIG = {
      retirer complètement de l'interface si l'éditeur ferme l'accès. */
   CHECKMATE_ENABLED: true,
   CHECKMATE_LIMIT: 1000,
+  /* Classement national (onglet « Top France » + filtre pays) :
+     CHECKMATE_COUNTRY        = code du pays mis en avant (FR, BE, CH…)
+     CHECKMATE_COUNTRY_DEPTH  = profondeur du classement national chargé */
+  CHECKMATE_COUNTRY: "FR",
+  CHECKMATE_COUNTRY_DEPTH: 100,
+  /* Pays proposés dans le filtre du jeu Checkmate : le classement national de
+     chacun se charge à la demande (le classement mondial chargé ne contient que
+     ~20 pays). Ajouter/retirer librement des codes ISO à 2 lettres. */
+  CHECKMATE_COUNTRIES: ["FR","BE","CH","LU","MC","CA","US","GB","IE","DE","AT","NL",
+                        "ES","PT","IT","GR","PL","RO","CZ","HU","SE","NO","DK","FI",
+                        "RU","UA","TR","IL","EG","MA","DZ","TN","SN","CI","CM","NG",
+                        "ZA","SA","AE","QA","IN","PK","BD","ID","PH","VN","TH","CN",
+                        "JP","KR","AU","BR","AR","CL","CO","PE","MX"],
 
   /* Rafraîchissement automatique du classement (secondes) */
   AUTO_REFRESH_SEC: 60,

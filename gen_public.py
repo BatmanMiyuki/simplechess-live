@@ -125,6 +125,54 @@ async def _cm_count(client, tok, ranked=False, level_gt=None):
         return None
 
 
+async def fetch_checkmate_country(cc: str = "FR", depth: int = 100) -> dict:
+    """Classement NATIONAL officiel : un appel par rang national
+    (« country = XX ET rankingCountry = k ») — léger et sans index composite."""
+    cc_eq = {"fieldFilter": {"field": {"fieldPath": "country"}, "op": "EQUAL",
+                             "value": {"stringValue": cc}}}
+    select = {"fields": [{"fieldPath": p} for p in
+                         ("username", "country", "level", "rankingGlobal", "rankingCountry",
+                          "stats", "puzzles")]}
+    sem = asyncio.Semaphore(16)
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        tok = await _cm_token(client)
+
+        async def one(k):
+            async with sem:
+                try:
+                    return await _cm_run(client, tok, {
+                        "from": [{"collectionId": "users"}],
+                        "where": {"compositeFilter": {"op": "AND", "filters": [
+                            cc_eq, {"fieldFilter": {"field": {"fieldPath": "rankingCountry"},
+                                                    "op": "EQUAL",
+                                                    "value": {"integerValue": str(k)}}}]}},
+                        "limit": 2, "select": select})
+                except Exception:
+                    return []
+        got = await asyncio.gather(*(one(k) for k in range(1, depth + 1)))
+
+    seen, rows = set(), []
+    for lst in got:
+        for f in lst:
+            rc = int(f.get("rankingCountry") or 0)
+            if rc <= 0 or f["_id"] in seen:
+                continue
+            seen.add(f["_id"])
+            st, pz = f.get("stats") or {}, f.get("puzzles") or {}
+            rows.append({"rank": rc, "username": f.get("username") or f["_id"],
+                         "country": f.get("country") or cc, "elo": int(f.get("level") or 0),
+                         "elo_best": None, "wins": int(st.get("gamesWins") or 0),
+                         "losses": int(st.get("gamesLosses") or 0), "draws": int(st.get("gamesDraws") or 0),
+                         "games": int(st.get("gamesAll") or 0),
+                         "puzzles": int(pz.get("puzzlesPoints") or 0),
+                         "rank_global": int(f.get("rankingGlobal") or 0)})
+    rows.sort(key=lambda r: r["rank"])
+    note = (f"Classement national officiel de l'app ({cc}) : joueurs portant un rang dans ce pays "
+            f"(rang national + rang mondial). Profondeur analysée : {depth}.")
+    return {"label": "France" if cc == "FR" else cc, "rows": rows, "total": None, "note": note}
+
+
 async def fetch_checkmate(limit: int = 100) -> dict:
     """Top du classement OFFICIEL de l'app : joueurs classés (rang officiel),
     listés par rang. Lecture seule, session anonyme."""
@@ -356,9 +404,10 @@ def text_checkmate(rows) -> str:
     """Top 10 Checkmate en texte : Elo, victoires/défaites/nulles, points de puzzles."""
     lines = []
     for p in rows[:10]:
+        rg = f", n°{p['rank_global']} mondial" if p.get("rank_global") else ""
         lines.append(f"{p['rank']}. {p['username']} — Elo {p['elo']} "
                      f"({p['games']} parties, {p['wins']}V/{p['losses']}D/{p['draws']}N, "
-                     f"{p['puzzles']} points de puzzles, pays {p['country'] or '?'})")
+                     f"{p['puzzles']} points de puzzles, pays {p['country'] or '?'}{rg})")
     return "\n".join(lines)
 
 
@@ -397,6 +446,10 @@ async def fetch_all():
         except Exception:
             pass
         data[("checkmate", "rank")] = cm
+        try:
+            data[("checkmate", "france")] = await fetch_checkmate_country("FR", 100)
+        except Exception as e:
+            print(f"⚠️  Checkmate France indisponible : {e}")
     except Exception as e:      # l'éditeur peut fermer l'accès : on n'échoue pas
         print(f"⚠️  Checkmate indisponible : {e}")
     return data
@@ -446,7 +499,7 @@ joueurs (pseudo, Elo, rang, jeu).
 
 - [SimpleChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): bullet, blitz, rapide, chess960, puzzle battle
 - [SocialChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): Bullet, Blitz, Rapid, Chess960, Classical, Fast, Slow
-- [Checkmate — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): classement unique (Elo, victoires, points de puzzles)
+- [Checkmate — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): classement mondial + classement France (rangs officiels)
 - [Pages HTML par classement]({SITE}/public/): top 100 avec statistiques
 - [Index des joueurs]({SITE}/public/players.txt): pseudo → Elo, rang, jeu
 - [Flux RSS]({SITE}/public/rss.xml): changements du top
@@ -526,9 +579,11 @@ def main():
         # index joueurs
         for p in d["rows"][:60]:
             nm = p["username"]
+            rank_txt = f"#{p['rank']}" + (f" (n°{p['rank_global']} mondial)" if p.get("rank_global") else "")
             if nm not in players or p["elo"] > players[nm]["elo"]:
-                players[nm] = {"elo": p["elo"], "provider": game_label, "mode": label,
-                               "rank": p["rank"]}
+                players[nm] = {"elo": p["elo"], "provider": game_label,
+                               "mode": label if not p.get("rank_global") else f"{label}, {p['country']}",
+                               "rank_txt": rank_txt}
         # RSS (top 5)
         for p in d["rows"][:5]:
             rss_items.append(
@@ -567,8 +622,12 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
         rc = f" (n°{me['rank_country']} {me['country']})" if me["rank_country"] else ""
         pl_lines.append(f"{me['username']} | Checkmate | Classement (Elo) | {me['elo']} | {rg}{rc} "
                         f"· {me['games']} parties · {me['puzzles']} pts puzzles")
+    seen_pl = set()
     for nm, p in sorted(players.items(), key=lambda kv: -kv[1]["elo"])[:300]:
-        pl_lines.append(f"{nm} | {p['provider']} | {p['mode']} | {p['elo']} | #{p['rank']}")
+        if nm.lower() in seen_pl:      # même joueur vu dans plusieurs classements
+            continue
+        seen_pl.add(nm.lower())
+        pl_lines.append(f"{nm} | {p['provider']} | {p['mode']} | {p['elo']} | {p.get('rank_txt') or '#'+str(p['rank'])}")
     (PUB / "players.txt").write_text("\n".join(pl_lines), encoding="utf-8")
 
     # RSS

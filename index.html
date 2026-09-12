@@ -108,6 +108,11 @@
   .name{font-weight:700; white-space:nowrap; max-width:240px; overflow:hidden; text-overflow:ellipsis}
   .elo{font-weight:800; color:var(--green)}
   .sub{color:var(--dim2); font-size:12px}
+  /* joueur suivi (config.js) mis en évidence dans le classement */
+  tr.me td{background:rgba(127,219,106,.07)}
+  tr.me .rank{color:var(--green)}
+  .you{display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; font-size:10px; font-weight:800;
+       background:rgba(127,219,106,.18); color:var(--green); vertical-align:1px}
   .flag{font-size:16px; margin-right:7px; vertical-align:-2px}
   .msg{padding:34px; text-align:center; color:var(--dim)}
   .nav{display:flex; justify-content:space-between; margin-top:14px; font-size:12.5px; color:var(--dim2); flex-wrap:wrap; gap:6px}
@@ -269,7 +274,7 @@ const CFG = Object.assign({
    ========================================================= */
 const M_ICONS = {bullet:"🚀", blitz:"⚡", standard:"🕒", chess960:"🎲", puzzlesbatl:"🧩",
                  Bullet:"🚀", Blitz:"⚡", Rapid:"🕒", Chess960:"🎲", Classical:"🏛", Fast:"🔥", Slow:"📮",
-                 rank:"👑"};
+                 rank:"👑", france:"🇫🇷"};
 
 const GAMES = {
   simplechess: {
@@ -284,7 +289,9 @@ const GAMES = {
   },
   checkmate: {
     name:"Checkmate", icon:"👑", tag:"CM",
-    modes:[["rank","Classement"]],   // pas de cadences : un seul Elo (niveau)
+    /* Rank = classement mondial officiel ; France = classement national officiel.
+       Le libellé de l'onglet national suit CFG.CHECKMATE_COUNTRY (voir plus bas). */
+    modes:[["rank","Classement"],["france","Top France"]],   // pas de cadences : un seul Elo (niveau)
     rateKey:"elo",
     col5:"Puzzles",                  // 5e colonne du tableau = points de puzzles
   },
@@ -567,12 +574,48 @@ const Checkmate = (()=>{
 
   return {
     /* classement OFFICIEL de l'app : joueurs classés (rang officiel) dans l'ordre de l'app */
-    async leaderboard(){
+    async leaderboard(mode){
+      if(mode==="france") return this.countryTop(CFG.CHECKMATE_COUNTRY||"FR", CFG.CHECKMATE_COUNTRY_DEPTH||100);
       const docs = await runQuery({from:[{collectionId:"users"}], where:RANKED,
         orderBy:[{field:{fieldPath:"rankingGlobal"},direction:"ASCENDING"}], limit:LIMIT});
       const rows = docs.map(toRow).filter(r=>r.rank>0);
       return {rows,
         source:`Checkmate (Splend Apps) · classement officiel de l'app · ${rows.length} premiers · lecture seule`};
+    },
+    /* --- classement NATIONAL officiel (rang dans le pays) --------------
+       Astuce : on interroge un rang national à la fois
+       (« country = XX ET rankingCountry = k ») — requête légère (~250 o)
+       possible sans index composite, contrairement au filtre pays classique.
+       On évite ainsi de charger 877 000 joueurs pour trouver les Français. */
+    async countryTop(cc, depth){
+      const n = Math.max(1, Math.min(300, Number(depth)||100));
+      const SELECT = {fields:[{fieldPath:"username"},{fieldPath:"country"},{fieldPath:"level"},
+                              {fieldPath:"rankingGlobal"},{fieldPath:"rankingCountry"},
+                              {fieldPath:"stats"},{fieldPath:"puzzles"}]};
+      const ccEq = v => ({fieldFilter:{field:{fieldPath:"country"},op:"EQUAL",value:{stringValue:v}}});
+      const out = [];
+      const BATCH = 20;
+      for(let start=1; start<=n; start+=BATCH){
+        const ks=[];
+        for(let k=start; k<Math.min(start+BATCH, n+1); k++) ks.push(k);
+        const got = await Promise.all(ks.map(k => runQuery({
+          from:[{collectionId:"users"}],
+          where:{compositeFilter:{op:"AND", filters:[ccEq(cc),
+            {fieldFilter:{field:{fieldPath:"rankingCountry"},op:"EQUAL",value:{integerValue:String(k)}}}]}},
+          limit:2, select:SELECT}).catch(()=>[])));
+        got.forEach(list => list.forEach(f=>{
+          const r = toRow(f);
+          r.rank = Number(f.rankingCountry)||0;
+          r.rankGlobal = Number(f.rankingGlobal)||0;
+          r.title = r.rankGlobal ? ("#"+r.rankGlobal+" mondial") : "";
+          out.push(r);
+        }));
+      }
+      const seen=new Set();
+      const rows = out.filter(r=>r.rank>0 && !seen.has(r.id) && seen.add(r.id))
+                      .sort((a,b)=>a.rank-b.rank);
+      return {rows, note: rows.length ? "" : "Aucun joueur classé pour ce pays dans la base.",
+        source:`Checkmate (Splend Apps) · classement national ${cc} officiel · ${rows.length} premiers · lecture seule`};
     },
     /* par identifiant de document (fiable : les pseudos ne sont pas uniques) */
     async byId(docId){
@@ -646,6 +689,19 @@ async function apiModeHistory(game, user, mode){
    ========================================================= */
 const params = new URLSearchParams(location.search);
 let remoteRow = null, remoteFor = "";   // Checkmate : joueur trouvé directement dans la base (hors top chargé)
+const countryTopCache = {};             // Checkmate : classements nationaux déjà chargés (cc -> lignes)
+const countryTopPending = {};
+/* charge à la demande le classement national d'un pays (Checkmate) */
+async function ensureCountryTop(cc){
+  if(!cc || countryTopCache[cc] || countryTopPending[cc] || !PROVIDERS.checkmate) return;
+  countryTopPending[cc]=true;
+  try{
+    const r = await Checkmate.countryTop(cc, CFG.CHECKMATE_COUNTRY_DEPTH||100);
+    countryTopCache[cc] = r.rows || [];
+  }catch(e){ countryTopCache[cc] = []; }
+  countryTopPending[cc]=false;
+  if($("countryFilter").value===cc) render();
+}
 let state = {
   game: GAMES[params.get("game")] ? params.get("game") : (GAMES[CFG.DEFAULT_GAME]?CFG.DEFAULT_GAME:"simplechess"),
   mode: null,
@@ -682,6 +738,13 @@ function buildGameSwitch(){
 }
 function buildTabs(){
   if($("th5")) $("th5").textContent = curGame().col5 || "Elo max";
+  /* onglet national : libellé selon le pays configuré */
+  if(state.game==="checkmate"){
+    const cc=CFG.CHECKMATE_COUNTRY||"FR";
+    const name={FR:"France",BE:"Belgique",CH:"Suisse",CA:"Canada",US:"États-Unis",MA:"Maroc",DZ:"Algérie",TN:"Tunisie"}[cc]||cc;
+    const m=GAMES.checkmate.modes.find(x=>x[0]==="france");
+    if(m) m[1]="Top "+name;
+  }
   const el=$("tabs"); el.innerHTML="";
   curGame().modes.forEach(([id,label])=>{
     const b=document.createElement("button");
@@ -717,7 +780,15 @@ const hasFlagEmoji = s => /[\u{1F1E6}-\u{1F1FF}]/u.test(s||"");
 function render(){
   const needle=$("search").value.trim().toLowerCase();
   const cc=$("countryFilter").value;
-  let rows=applyMoversSort(lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
+  /* Checkmate : les rangs officiels n'étant pas triables par pays côté requête,
+     le filtre pays charge le classement national complet (au lieu du seul top mondial). */
+  let base=lastPlayers;
+  const national = state.game==="checkmate" && cc;
+  if(national){
+    if(countryTopCache[cc]) base=countryTopCache[cc];
+    else { base=[]; ensureCountryTop(cc); }
+  }
+  let rows=applyMoversSort(base.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
   if(!rows.length && remoteRow && needle && remoteRow.name.toLowerCase().includes(needle)) rows=[remoteRow];
   const tb=$("tbody"); tb.innerHTML="";
   if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`; }
@@ -731,12 +802,13 @@ function render(){
   } else $("moversInfo").textContent="";
   rows.forEach(p=>{
     const tr=document.createElement("tr");
-    tr.className=(p.rank&&p.rank<=3?"top"+p.rank:"")+" clickable";
+    const isMe=(CFG.MY_USERNAME_CM && p.name===CFG.MY_USERNAME_CM) || (CFG.MY_USERNAME && p.name===CFG.MY_USERNAME);
+    tr.className=(p.rank&&p.rank<=3?"top"+p.rank:"")+(isMe?" me":"")+" clickable";
     const flag = hasFlagEmoji(p.name) ? "" : flagEmoji(p.country);
     const mvCell = moverCell(moverState(state.game,state.mode,p));
     tr.innerHTML=`
       <td class="rank">${p.rank||"—"}${mvCell?"<br>":""}${mvCell}</td>
-      <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
+      <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}${(CFG.MY_USERNAME_CM && p.name===CFG.MY_USERNAME_CM)||(CFG.MY_USERNAME && p.name===CFG.MY_USERNAME)?"<span class='you'>vous</span>":""}</td>
       <td><span class="sub">${esc(p.country||"—")}</span></td>
       <td style="text-align:right" class="elo">${p.elo||"—"}</td>
       <td style="text-align:right" class="sub">${(p.eloBest ?? (p.puzzles!=null?p.puzzles:null)) ?? "—"}</td>
@@ -747,16 +819,30 @@ function render(){
     tr.onclick=()=>showPlayer(p);
     tb.appendChild(tr);
   });
-  $("count").textContent=`${rows.length} joueur(s) · ${state.game==="checkmate"?"classement officiel de l'app":"top "+lastPlayers.length+" mondial"}`
-    + (state.game==="checkmate"?` · rangs n°${lastPlayers[0]?lastPlayers[0].rank:"?"} à n°${lastPlayers[lastPlayers.length-1]?lastPlayers[lastPlayers.length-1].rank:"?"} du jeu`:"")
-    + (state.game==="checkmate"&&cc?" · filtre pays appliqué à cette fenêtre":"")
-    + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors fenêtre)" : "");
+  const el=$("count");
+  if(national && !countryTopCache[cc]){
+    el.textContent = `chargement du classement national ${cc}…`;
+  } else {
+    const scope = national ? ("classement national "+cc+" · rangs officiels")
+                : (state.game==="checkmate" ? "classement officiel de l'app"
+                                            : "top "+lastPlayers.length+" mondial");
+    const detail = national ? ""
+      : (base.length ? ` · rangs n°${base[0].rank||"?"} à n°${base[base.length-1].rank||"?"} du jeu` : "");
+    el.textContent = `${rows.length} joueur(s) · ${scope}${detail}`
+      + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors fenêtre)" : "");
+  }
 }
 
 /* ---------- filtre pays ---------- */
 function populateCountries(){
   const sel=$("countryFilter"); const cur=sel.value;
-  const codes = [...new Set(lastPlayers.map(p=>p.country).filter(Boolean))].sort();
+  let codes = [...new Set(lastPlayers.map(p=>p.country).filter(Boolean))].sort();
+  /* Checkmate : le classement national se charge à la demande pour n'importe
+     quel pays → on propose aussi la liste configurée (CFG.CHECKMATE_COUNTRIES). */
+  if(state.game==="checkmate"){
+    const extra=(CFG.CHECKMATE_COUNTRIES||[]).filter(c=>/^[A-Z]{2}$/.test(c));
+    codes=[...new Set([...codes, ...extra])].sort();
+  }
   sel.innerHTML=`<option value="">🌍 Tous les pays</option>` + codes.map(c=>
     `<option value="${esc(c)}">${flagEmoji(c)} ${esc(c)}</option>`).join("");
   sel.value = codes.includes(cur) ? cur : "";
@@ -996,6 +1082,7 @@ function snapSave(game,mode,rows){
 }
 function moverState(game,mode,p){
   if(p && p.remote) return null;   // joueur trouvé dans la base Checkmate : pas de comparaison de mouvement
+  if(game==="checkmate" && mode==="france") return null;   // classement national : population différente du mondial
   try{
     const list=(snapStore().s[game+":"+mode]||[]);
     if(!list.length) return null;
@@ -1069,8 +1156,10 @@ async function providerTotals(){
       const t=await Checkmate.totals();
       if(t.ranked==null) throw new Error("indisponible");
       const nf=n=>Number(n||0).toLocaleString("fr-FR");
-      res={byMode:{rank:t.ranked},
-           note:`${nf(t.ranked)} joueurs classés (ceux qui portent un rang officiel dans l'app) sur ${nf(t.all)} comptes au total. ChessLive affiche les ${Number(CFG.CHECKMATE_LIMIT||1000).toLocaleString("fr-FR")} premiers.`};
+      const cc=CFG.CHECKMATE_COUNTRY||"FR";
+      const nat=countryTopCache[cc];
+      res={byMode:{rank:t.ranked, france: nat? nat.length : null},
+           note:`${nf(t.ranked)} joueurs classés (ceux qui portent un rang officiel dans l'app) sur ${nf(t.all)} comptes au total. ChessLive affiche les ${Number(CFG.CHECKMATE_LIMIT||1000).toLocaleString("fr-FR")} premiers au niveau mondial${nat?`, et les ${nat.length} premiers du classement ${cc}`:" — ouvrez le filtre pays ou l'onglet national pour charger un classement par pays"}. Aucun total national n'est publié par l'app.`};
       cache[k24]={t:Date.now(), v:res};
     }catch(e){
       res={byMode:{}, note:"Totaux Checkmate momentanément indisponibles (accès classement fermé ?)"};
@@ -1163,8 +1252,13 @@ function exportRows(fmt){
   const fname=`chesslive-${state.game}-${state.mode}-${stamp}`;
   if(fmt==="csv"){
     const cm = state.game==="checkmate";
-    const head=["rank","username","country","elo",cm?"puzzles":"elo_best","wins","losses","draws","games"];
-    const csv=[head.join(","), ...rows.map(p=>[p.rank,`"${esc(p.name).replace(/"/g,'""')}"`,p.country,p.elo,cm?p.puzzles:p.eloBest,p.wins,p.losses,p.draws,p.games].join(","))].join("\n");
+    const nm = p => `"${esc(p.name).replace(/"/g,'""')}"`;
+    const head = cm ? ["rank","rank_global","username","country","elo","puzzles","wins","losses","draws","games"]
+                    : ["rank","username","country","elo","elo_best","wins","losses","draws","games"];
+    const body = rows.map(p => (cm
+      ? [p.rank, p.rankGlobal||"", nm(p), p.country, p.elo, p.puzzles||0, p.wins, p.losses, p.draws, p.games]
+      : [p.rank, nm(p), p.country, p.elo, p.eloBest, p.wins, p.losses, p.draws, p.games]).join(","));
+    const csv=[head.join(","), ...body].join("\n");
     dlBlob(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}), fname+".csv");
   } else {
     const j={generated_at:new Date().toISOString(), app:"ChessLive", game:state.game, mode:state.mode,

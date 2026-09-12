@@ -8,7 +8,7 @@ Trois jeux supportés, avec **switch intégré** :
 |---|---|---|
 | ♟️ **SimpleChess** (Europe Echecs) | Bullet · Blitz · Rapid · Chess960 · Puzzle Battle | `POST https://api.echecs.com/public/liveplay/top` (REST, CORS ouvert, sans clé) |
 | ⚔️ **SocialChess** (Woodchop Software) | Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow | `wss://api.socialchess.com?x=ws` (frame binaire `\x00` + JSON, commandes `usersByRank` / `getUser`) |
-| 👑 **Checkmate** / « Chess Online & Offline » (Splend Apps) | Classement unique (Elo + victoires + points de puzzles) | Base Firebase/Firestore de l'app (projet `checkmate-17950`, collection `users`) — **lecture seule**, session **anonyme**, aucune donnée personnelle (voir plus bas) |
+| 👑 **Checkmate** / « Chess Online & Offline » (Splend Apps) | Mondial + **Top France** (rangs officiels) | Base Firebase/Firestore de l'app (projet `checkmate-17950`, collection `users`) — **lecture seule**, session **anonyme**, aucune donnée personnelle (voir plus bas) |
 
 ## ✨ Fonctionnalités (v3)
 
@@ -21,7 +21,7 @@ Trois jeux supportés, avec **switch intégré** :
 - **Classement par pays** : nb de joueurs, Elo moyen, meilleur — clic pour filtrer
 - **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
 - **Panneau « Mon compte »** : SimpleChess (**Miyukipa** 🏆) + **Checkmate** (**ChessMiyuki**, rang mondial & national) + mesures ChessLive
-- **Checkmate (Splend Apps)** : classement mondial des 500 meilleurs (Elo, victoires/défaites/nulles, points de puzzles, pays), recherche, profil détaillé, stats de la base (comptes au total, > 2 000 et > 2 500 Elo) — accès désactivable d'une ligne (`CHECKMATE_ENABLED: false`)
+- **Checkmate (Splend Apps)** : classement **mondial** (rangs officiels, 1 000 premiers) **et national** — onglet « 🇫🇷 Top France » + filtre pays pour n'importe quel pays (chargé à la demande, 100 premiers par défaut). Recherche, profil détaillé, ligne « vous » mise en évidence, stats de la base (877 000 joueurs classés) — accès désactivable d'une ligne (`CHECKMATE_ENABLED: false`)
 - **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — **Miyukipa #1 bullet, blitz & rapid** 😉
 
 ---
@@ -50,6 +50,10 @@ window.SC_CONFIG = {
   MY_USERNAME_CM: "ChessMiyuki",// votre pseudo Checkmate / « Chess Online & Offline »
   MY_USERNAME_SC: "",           // votre pseudo SocialChess (optionnel)
   CHECKMATE_ENABLED: true,      // false = retire l'onglet Checkmate de l'interface
+  CHECKMATE_LIMIT: 1000,        // profondeur du classement mondial chargé
+  CHECKMATE_COUNTRY: "FR",      // pays du classement national (onglet « Top France »)
+  CHECKMATE_COUNTRY_DEPTH: 100, // profondeur du classement national
+  CHECKMATE_COUNTRIES: ["FR", …], // pays proposés dans le filtre
   AUTO_REFRESH_SEC: 60,
 };
 ```
@@ -73,8 +77,15 @@ ChessLive récupère ce classement :
 - avec **garde-fous** : les profils incohérents (Elo > 5 000 ou victoires > 200 000, typiquement des
   comptes trafiqués) sont écartés du classement, et le nombre de profils écartés est affiché.
 
-**Règle de classement** (celle de l'app) : `score = Elo × 10⁷ + victoires × 100 + points de puzzles`.
-L'Elo est donc prépondérant, puis les victoires, puis les puzzles.
+**Classement mondial** : l'app liste les joueurs qui portent un **rang officiel**
+(champ `rankingGlobal > 0`), par ce rang — 877 725 joueurs classés, n°1 Oferbruk.
+Trier par Elo remonterait des comptes non classés (nouveaux comptes sans partie,
+profils trafiqués) : c'est ce piège qui a été corrigé.
+
+**Classement national** (onglet « Top France » + filtre pays) : ChessLive interroge
+un rang national à la fois (`country = FR ET rankingCountry = k`) — requête légère
+(~250 octets par joueur), sans index composite, en 16 appels parallèles. On obtient
+ainsi le classement du pays **en entier** sans charger 877 000 joueurs.
 
 > ⚠️ Projet non officiel, non affilié à Splend Apps. Si l'éditeur ferme l'accès, il suffit de
 > mettre `CHECKMATE_ENABLED: false` dans `config.js` : l'onglet disparaît proprement.
