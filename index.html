@@ -1006,6 +1006,7 @@ function snapSave(game,mode,rows){
   }catch(e){}
 }
 function moverState(game,mode,p){
+  if(p && p.remote) return null;   // joueur trouvé dans la base Checkmate : pas de comparaison de mouvement
   try{
     const list=(snapStore().s[game+":"+mode]||[]);
     if(!list.length) return null;
