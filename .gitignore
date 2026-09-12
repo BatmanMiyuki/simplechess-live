@@ -7,6 +7,10 @@ venv/
 # Investigation (bundle amont, fichiers volumineux — hors repo)
 investigation/
 
+# Workflow GitHub Actions (le token n'a pas le scope « workflow » :
+# à créer/éditer depuis l'interface GitHub)
+.github/
+
 # Environnements / éditeurs
 .env
 .DS_Store

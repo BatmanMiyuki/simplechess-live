@@ -1193,6 +1193,13 @@ async function shareCard(data){
       <text x="40" y="48" fill="#8fa0b0" font-size="30" font-family="Arial,Helvetica">${esc(r.label||r.mode)}</text>
       <text x="860" y="50" fill="#7fdb6a" font-size="38" font-weight="bold" text-anchor="end" font-family="Arial,Helvetica">${r.elo??"—"}</text>
     </g>`).join("");
+  const r0=(data.ratings||[])[0]||{};
+  const cmExtra = (r0.puzzles!=null)
+    ? `<g transform="translate(540,${620+((data.ratings||[]).slice(0,6).length)*92+18})">
+         <text x="0" y="0" fill="#8fa0b0" font-size="28" text-anchor="middle" font-family="Arial,Helvetica">${
+           [r0.rank?("#"+r0.rank+" mondial"):"", r0.rankCountry?("#"+r0.rankCountry+" pays"):"",
+            r0.puzzles?(r0.puzzles+" points de puzzles"):""].filter(Boolean).join("  ·  ")}</text>
+       </g>` : "";
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a22"/><stop offset="1" stop-color="#0a0e13"/></linearGradient>
@@ -1207,6 +1214,7 @@ async function shareCard(data){
     <text x="540" y="392" fill="#ffffff" font-size="66" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica">${esc(data.name)}</text>
     <text x="540" y="444" fill="#8fa0b0" font-size="32" text-anchor="middle" font-family="Arial,Helvetica">${flagEmoji(data.country)} ${esc(data.country||"—")} · ${esc(curGame().name)}</text>
     ${lines}
+    ${cmExtra}
     <text x="540" y="1198" fill="#66788a" font-size="26" text-anchor="middle" font-family="Arial,Helvetica">ChessLive — classements en direct (projet non officiel) · ${new Date().toLocaleDateString("fr-FR")}</text>
   </svg>`;
   const img=new Image();
