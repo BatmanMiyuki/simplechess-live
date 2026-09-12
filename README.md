@@ -2,12 +2,13 @@
 
 **Classements échecs en direct** — PWA installable (hors-ligne après 1ère visite, graphique d'évolution Elo).
 
-Deux jeux supportés, avec **switch intégré** :
+Trois jeux supportés, avec **switch intégré** :
 
 | Jeu | Classements | Source (découverte) |
 |---|---|---|
 | ♟️ **SimpleChess** (Europe Echecs) | Bullet · Blitz · Rapid · Chess960 · Puzzle Battle | `POST https://api.echecs.com/public/liveplay/top` (REST, CORS ouvert, sans clé) |
 | ⚔️ **SocialChess** (Woodchop Software) | Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow | `wss://api.socialchess.com?x=ws` (frame binaire `\x00` + JSON, commandes `usersByRank` / `getUser`) |
+| 👑 **Checkmate** / « Chess Online & Offline » (Splend Apps) | Classement unique (Elo + victoires + points de puzzles) | Base Firebase/Firestore de l'app (projet `checkmate-17950`, collection `users`) — **lecture seule**, session **anonyme**, aucune donnée personnelle (voir plus bas) |
 
 ## ✨ Fonctionnalités (v3)
 
@@ -19,7 +20,8 @@ Deux jeux supportés, avec **switch intégré** :
 - **Stats & totaux** : histogramme Elo du top + **nombre total de joueurs classés** (SocialChess : exact, via `eloRanking` du bas du classement ; SimpleChess : non publié par l'API amont → note honnête affichée)
 - **Classement par pays** : nb de joueurs, Elo moyen, meilleur — clic pour filtrer
 - **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
-- **Panneau « Mon compte »** (préconfiguré sur votre pseudo : Miyukipa 🏆) : graphique + mesures ChessLive
+- **Panneau « Mon compte »** : SimpleChess (**Miyukipa** 🏆) + **Checkmate** (**ChessMiyuki**, rang mondial & national) + mesures ChessLive
+- **Checkmate (Splend Apps)** : classement mondial des 500 meilleurs (Elo, victoires/défaites/nulles, points de puzzles, pays), recherche, profil détaillé, stats de la base (comptes au total, > 2 000 et > 2 500 Elo) — accès désactivable d'une ligne (`CHECKMATE_ENABLED: false`)
 - **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — **Miyukipa #1 bullet, blitz & rapid** 😉
 
 ---
@@ -44,11 +46,38 @@ window.SC_CONFIG = {
   API_MODE: "amont",            // "amont" (statique) | "api" (backend FastAPI)
   API_BASE: "",                 // ex. "https://mon-api.up.railway.app" (mode api)
   DEFAULT_GAME: "simplechess",  // jeu ouvert par défaut
-  MY_USERNAME: "Miyukipa", // votre compte SimpleChess (panneau stats)
+  MY_USERNAME: "Miyukipa",      // votre compte SimpleChess (panneau stats)
+  MY_USERNAME_CM: "ChessMiyuki",// votre pseudo Checkmate / « Chess Online & Offline »
   MY_USERNAME_SC: "",           // votre pseudo SocialChess (optionnel)
+  CHECKMATE_ENABLED: true,      // false = retire l'onglet Checkmate de l'interface
   AUTO_REFRESH_SEC: 60,
 };
 ```
+
+## 👑 Checkmate : comment le classement est récupéré (et pourquoi c'est acceptable)
+
+L'app **Checkmate — Chess Online & Offline** (Splend Apps, `com.splendapps.checkmate`)
+n'a **ni API publique ni site web**. Toutes ses données vivent dans une base
+**Firebase/Firestore** (`checkmate-17950`) que l'application interroge directement
+depuis le téléphone, et dont la collection **`users`** (= le classement affiché
+dans l'écran « Classements » de l'app) est lisible par les clients de l'application.
+
+ChessLive récupère ce classement :
+
+- avec la **clé publique** de l'app (embarquée dans l'APK distribué sur le Play Store) ;
+- via une **session Firebase anonyme** — fonctionnalité prévue par l'app elle-même (`isAnonymous`) —
+  donc **sans aucun compte, sans identifiant personnel et sans mot de passe** ;
+- en **lecture seule stricte** : aucune écriture, aucune interaction avec les comptes ou les parties ;
+- avec **cache** (1 h pour les totaux, 24 h pour les agrégations) pour ne pas solliciter la base inutilement ;
+- en **ignorant les champs privés** lus par erreur (jeton de notification, etc. non exploités) ;
+- avec **garde-fous** : les profils incohérents (Elo > 5 000 ou victoires > 200 000, typiquement des
+  comptes trafiqués) sont écartés du classement, et le nombre de profils écartés est affiché.
+
+**Règle de classement** (celle de l'app) : `score = Elo × 10⁷ + victoires × 100 + points de puzzles`.
+L'Elo est donc prépondérant, puis les victoires, puis les puzzles.
+
+> ⚠️ Projet non officiel, non affilié à Splend Apps. Si l'éditeur ferme l'accès, il suffit de
+> mettre `CHECKMATE_ENABLED: false` dans `config.js` : l'onglet disparaît proprement.
 
 ## 🛠️ La FastAPI incluse (optionnelle : cache serveur, filtres, Swagger, exports)
 

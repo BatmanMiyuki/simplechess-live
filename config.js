@@ -16,10 +16,18 @@ window.SC_CONFIG = {
 
   /* Ton compte :
      - MY_USERNAME      : pseudo SimpleChess (profil + graphique d'évolution)
+     - MY_USERNAME_CM   : pseudo Checkmate / « Chess Online & Offline » (Splend Apps)
      - MY_USERNAME_SC   : pseudo SocialChess (optionnel, pour l'import)
      (Ancien compte : "ILoveKaroline" — remplacer ici pour y revenir.) */
   MY_USERNAME: "Miyukipa",
+  MY_USERNAME_CM: "ChessMiyuki",
   MY_USERNAME_SC: "",
+
+  /* Jeu Checkmate (Splend Apps) :
+     le classement est lu en LECTURE SEULE dans la base publique de l'app
+     (session anonyme, aucune donnée personnelle). Mettre false pour le
+     retirer complètement de l'interface si l'éditeur ferme l'accès. */
+  CHECKMATE_ENABLED: true,
 
   /* Rafraîchissement automatique du classement (secondes) */
   AUTO_REFRESH_SEC: 60,

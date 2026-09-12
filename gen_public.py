@@ -54,6 +54,146 @@ SCo_MODES = [("Bullet", "Bullet"), ("Blitz", "Blitz"), ("Rapid", "Rapid"),
              ("Fast", "Fast"), ("Slow", "Slow")]
 SCo_KEY = "stats"
 
+# ------------------- Checkmate / « Chess Online & Offline » (Splend Apps) ---
+# Classement lu en LECTURE SEULE dans la base Firebase/Firestore de l'app
+# (projet checkmate-17950) via une session ANONYME : même accès que l'écran
+# « Classements » de l'application, aucune donnée personnelle, aucune écriture.
+CM_KEY = "AIzaSyBRKClWWQ0u4Av4Ubq84-a-a3pRRU6-H70"      # clé publique embarquée dans l'APK
+CM_PROJ = "checkmate-17950"
+CM_FS = f"https://firestore.googleapis.com/v1/projects/{CM_PROJ}/databases/(default)/documents"
+CM_MAX_ELO, CM_MAX_WINS = 5000, 200000                    # garde-fous : profils incohérents
+CM_NOTE = ("Checkmate ne publie pas de « joueurs classés » distinct : le compteur "
+           "indique le nombre total de comptes de la base.")
+
+
+def _cm_dec(v):
+    """Décode une valeur Firestore (REST) en Python."""
+    if not v:
+        return None
+    for k, cast in (("stringValue", str), ("integerValue", int), ("doubleValue", float),
+                    ("booleanValue", bool), ("timestampValue", str), ("referenceValue", str)):
+        if k in v:
+            return cast(v[k])
+    if "nullValue" in v:
+        return None
+    if "mapValue" in v:
+        return {a: _cm_dec(b) for a, b in (v["mapValue"].get("fields") or {}).items()}
+    if "arrayValue" in v:
+        return [_cm_dec(x) for x in (v["arrayValue"].get("values") or [])]
+    return None
+
+
+def _cm_doc(d):
+    f = {k: _cm_dec(v) for k, v in (d.get("fields") or {}).items()}
+    f["_id"] = d["name"].split("/")[-1]
+    return f
+
+
+async def _cm_token(client) -> str:
+    r = await client.post(f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={CM_KEY}",
+                          json={"returnSecureToken": True})
+    r.raise_for_status()
+    return r.json()["idToken"]
+
+
+async def _cm_run(client, tok, query) -> list:
+    r = await client.post(f"{CM_FS}:runQuery", json={"structuredQuery": query},
+                          headers={"Authorization": f"Bearer {tok}"})
+    r.raise_for_status()
+    return [_cm_doc(x["document"]) for x in r.json() if "document" in x]
+
+
+async def _cm_count(client, tok, level_gt=None):
+    sq = {"from": [{"collectionId": "users"}]}
+    if level_gt is not None:
+        sq["where"] = {"fieldFilter": {"field": {"fieldPath": "level"}, "op": "GREATER_THAN",
+                                       "value": {"integerValue": str(level_gt)}}}
+    r = await client.post(f"{CM_FS}:runAggregationQuery",
+                          json={"structuredAggregationQuery": {
+                              "structuredQuery": sq,
+                              "aggregations": [{"count": {}, "alias": "n"}]}},
+                          headers={"Authorization": f"Bearer {tok}"})
+    if r.status_code != 200:
+        return None
+    try:
+        return int(r.json()[0]["result"]["aggregateFields"]["n"]["integerValue"])
+    except Exception:
+        return None
+
+
+async def fetch_checkmate(limit: int = 100) -> dict:
+    """Top Checkmate : tri Elo décroissant, puis victoires, puis points de puzzles
+    (règle de classement de l'app). Lecture seule, session anonyme."""
+    async with httpx.AsyncClient(timeout=90) as client:
+        tok = await _cm_token(client)
+        docs = await _cm_run(client, tok, {
+            "from": [{"collectionId": "users"}],
+            "orderBy": [{"field": {"fieldPath": "level"}, "direction": "DESCENDING"}],
+            "limit": limit})
+        total = await _cm_count(client, tok)
+        over2000 = await _cm_count(client, tok, 2000)
+        over2500 = await _cm_count(client, tok, 2500)
+
+    def plausible(f):
+        st = f.get("stats") or {}
+        lvl, w, allg = int(f.get("level") or 0), int(st.get("gamesWins") or 0), int(st.get("gamesAll") or 0)
+        return lvl <= CM_MAX_ELO and w <= CM_MAX_WINS and (allg == 0 or w <= allg * 1.2)
+
+    def score(f):
+        st, pz = f.get("stats") or {}, f.get("puzzles") or {}
+        return (int(f.get("level") or 0) * 10**7 + int(st.get("gamesWins") or 0) * 100
+                + int(pz.get("puzzlesPoints") or 0))
+
+    good = sorted((f for f in docs if plausible(f)), key=score, reverse=True)[:limit]
+    rows = []
+    for i, f in enumerate(good, 1):
+        st, pz = f.get("stats") or {}, f.get("puzzles") or {}
+        rows.append({"rank": i, "username": f.get("username") or f["_id"],
+                     "country": f.get("country") or "", "elo": int(f.get("level") or 0),
+                     "elo_best": None, "wins": int(st.get("gamesWins") or 0),
+                     "losses": int(st.get("gamesLosses") or 0), "draws": int(st.get("gamesDraws") or 0),
+                     "games": int(st.get("gamesAll") or 0),
+                     "puzzles": int(pz.get("puzzlesPoints") or 0)})
+    note = CM_NOTE
+    if over2000 and over2500:
+        note += (f" {over2000:,} comptes au-dessus de 2 000 Elo et {over2500:,} au-dessus de 2 500 "
+                 "(mesure ChessLive).").replace(",", " ")
+    return {"label": "Classement (Elo)", "rows": rows, "total": total, "note": note,
+            "skipped": len(docs) - len(good)}
+
+
+def config_pseudos() -> tuple:
+    """Pseudos suivis, lus dans config.js (My_USERNAME / MY_USERNAME_CM)."""
+    try:
+        txt = (ROOT / "config.js").read_text(encoding="utf-8")
+    except Exception:
+        return "", ""
+    def grab(key):
+        m = re.search(rf'{key}\s*:\s*"([^"]*)"', txt)
+        return m.group(1) if m else ""
+    return grab("MY_USERNAME"), grab("MY_USERNAME_CM")
+
+
+async def fetch_checkmate_player(username: str):
+    """Fiche d'un joueur Checkmate précis (Elo, rang mondial, rang pays)."""
+    if not username:
+        return None
+    async with httpx.AsyncClient(timeout=45) as client:
+        tok = await _cm_token(client)
+        docs = await _cm_run(client, tok, {
+            "from": [{"collectionId": "users"}], "limit": 10,
+            "where": {"fieldFilter": {"field": {"fieldPath": "username"}, "op": "EQUAL",
+                                      "value": {"stringValue": username}}}})
+    if not docs:
+        return None
+    f = sorted(docs, key=lambda d: (not d.get("isAnonymous"), (d.get("stats") or {}).get("gamesAll") or 0),
+               reverse=True)[0]
+    return {"username": f.get("username"), "elo": int(f.get("level") or 0),
+            "rank": int(f.get("rankingGlobal") or 0), "rank_country": int(f.get("rankingCountry") or 0),
+            "country": f.get("country") or "", "games": int((f.get("stats") or {}).get("gamesAll") or 0),
+            "wins": int((f.get("stats") or {}).get("gamesWins") or 0),
+            "puzzles": int((f.get("puzzles") or {}).get("puzzlesPoints") or 0)}
+
 
 def esc(s) -> str:
     return (str(s or "").replace("&", "&amp;").replace("<", "&lt;")
@@ -149,20 +289,21 @@ def fr_date() -> str:
 # Génération
 # ---------------------------------------------------------------------------
 
-def row_html(p, provider) -> str:
+def row_html(p, provider, col5="elo_best") -> str:
     flag = f'<td>{esc(p["country"] or "—")}</td>'
     ranks = p["rank"] or 1
+    c5 = p.get(col5)
     return (f'<tr><td class="rk">{ranks}</td><td class="nm">{esc(p["username"])}</td>{flag}'
-            f'<td class="elo">{p["elo"] or "—"}</td><td>{p["elo_best"] or "—"}</td>'
+            f'<td class="elo">{p["elo"] or "—"}</td><td>{c5 if c5 is not None else "—"}</td>'
             f'<td>{p["wins"] or "—"}</td><td>{p["losses"] or "—"}</td>'
             f'<td>{p["draws"] or "—"}</td><td>{p["games"] or "—"}</td></tr>')
 
 
 def page(game_name: str, mode_label: str, mode_id: str, rows: list[dict],
-         total: int | None, note: str) -> str:
+         total: int | None, note: str, col5_label: str = "Elo max", col5: str = "elo_best") -> str:
     url = f"{SITE}/public/top/{game_name.lower()}/{mode_id}/index.html"
     top_entries = []
-    table = "".join(row_html(p, game_name) for p in rows[:100])
+    table = "".join(row_html(p, game_name, col5) for p in rows[:100])
     for p in rows[:10]:
         top_entries.append({
             "@type": "ListItem", "position": p["rank"] or 1,
@@ -199,7 +340,7 @@ def page(game_name: str, mode_label: str, mode_id: str, rows: list[dict],
 <h1>Top {esc(mode_label)} <span>{esc(game_name)}</span> — ChessLive</h1>
 <p class="meta">Classement en direct (projet non officiel) · généré le {fr_date()} · <a href="{SITE}/">ChessLive</a></p>
 {total_html}
-<table><thead><tr><th>#</th><th>Joueur</th><th>Pays</th><th>Elo</th><th>Elo max</th><th>V</th><th>D</th><th>N</th><th>Parties</th></tr></thead>
+<table><thead><tr><th>#</th><th>Joueur</th><th>Pays</th><th>Elo</th><th>{esc(col5_label)}</th><th>V</th><th>D</th><th>N</th><th>Parties</th></tr></thead>
 <tbody>{table}</tbody></table>
 <footer>ChessLive — non affilié à {esc(game_name)}. Données publiques, usage informatif.
 <a href="{url.replace('/index.html','')}.txt">version texte</a> · <a href="{SITE}/public/llms-top.txt">top 10 texte (IA)</a></footer>
@@ -213,6 +354,16 @@ def text_top(rows) -> str:
         lines.append(f"{p['rank'] or 1}. {p['username']} — Elo {p['elo']} "
                      f"(max {p['elo_best'] or p['elo']}, {p['games']} parties, {p['wins']}V/"
                      f"{p['losses']}D/{p['draws']}N, pays {p['country'] or '?'})")
+    return "\n".join(lines)
+
+
+def text_checkmate(rows) -> str:
+    """Top 10 Checkmate en texte : Elo, victoires/défaites/nulles, points de puzzles."""
+    lines = []
+    for p in rows[:10]:
+        lines.append(f"{p['rank']}. {p['username']} — Elo {p['elo']} "
+                     f"({p['games']} parties, {p['wins']}V/{p['losses']}D/{p['draws']}N, "
+                     f"{p['puzzles']} points de puzzles, pays {p['country'] or '?'})")
     return "\n".join(lines)
 
 
@@ -242,6 +393,17 @@ async def fetch_all():
         data[("socialchess", cat.lower())] = {
             "label": label, "rows": rows, "total": total, "note": "",
         }
+    try:
+        cm = await fetch_checkmate(100)
+        try:
+            me = await fetch_checkmate_player(config_pseudos()[1])
+            if me:
+                cm["me"] = me
+        except Exception:
+            pass
+        data[("checkmate", "rank")] = cm
+    except Exception as e:      # l'éditeur peut fermer l'accès : on n'échoue pas
+        print(f"⚠️  Checkmate indisponible : {e}")
     return data
 
 
@@ -276,8 +438,10 @@ Sitemap: {SITE}/sitemap.xml
     llms = f"""# ChessLive
 
 > Classements en direct (non officiels) des jeux d'échecs en ligne SimpleChess
-> (Europe Echecs) et SocialChess (Woodchop Software). Source : API publiques
-> des plateformes. Dernière mise à jour : {fr_date()}.
+> (Europe Echecs), SocialChess (Woodchop Software) et Checkmate / « Chess Online
+> & Offline » (Splend Apps). Sources : API publiques des plateformes et, pour
+> Checkmate, la base de classement de l'app (lecture seule, session anonyme).
+> Dernière mise à jour : {fr_date()}.
 
 Les données détaillées sont dans le fichier `public/llms-top.txt` :
 top 10 par mode pour chaque jeu, et `public/players.txt` : index des meilleurs
@@ -287,13 +451,16 @@ joueurs (pseudo, Elo, rang, jeu).
 
 - [SimpleChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): bullet, blitz, rapide, chess960, puzzle battle
 - [SocialChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): Bullet, Blitz, Rapid, Chess960, Classical, Fast, Slow
+- [Checkmate — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): classement unique (Elo, victoires, points de puzzles)
 - [Pages HTML par classement]({SITE}/public/): top 100 avec statistiques
 - [Index des joueurs]({SITE}/public/players.txt): pseudo → Elo, rang, jeu
 - [Flux RSS]({SITE}/public/rss.xml): changements du top
 
 ## Notes
 
-- Projets non officiels, à but informatif, non affiliés aux éditeurs des jeux.
+- Projets non officiels, à but informatif, non affiliés aux éditeurs des jeux
+  (Europe Echecs / SimpleChess, Woodchop Software / SocialChess, Splend Apps / Checkmate).
+- Classement Checkmate : ordre = Elo, puis victoires, puis points de puzzles (règle de l'app).
 - Les classements changent en général une fois par jour (SimpleChess ~60 min,
   SocialChess temps réel). Ce site est mis à jour quotidiennement.
 - Pour trouver un joueur, cherchez son pseudo dans `public/players.txt`.
@@ -302,7 +469,7 @@ joueurs (pseudo, Elo, rang, jeu).
 
     # ai.txt — simple déclaration d'indexation
     ai = f"""# AI.txt
-ChessLive — classements échecs en direct (SimpleChess, SocialChess)
+ChessLive — classements échecs en direct (SimpleChess, SocialChess, Checkmate)
 URL: {SITE}
 Contenu utile pour les agents IA:
 - {SITE}/public/llms-top.txt  (top 10 par mode, texte)
@@ -336,22 +503,30 @@ def main():
 
     for (game, mode_id), d in sorted(data.items(), key=lambda kv: (kv[0][0], kv[0][1])):
         label = d["label"]
-        game_label = "SimpleChess" if game == "simplechess" else "SocialChess"
+        game_label = {"simplechess": "SimpleChess", "socialchess": "SocialChess",
+                      "checkmate": "Checkmate"}.get(game, game)
         dirp = PUB / "top" / game / mode_id
         dirp.mkdir(parents=True, exist_ok=True)
         url = f"{SITE}/public/top/{game}/{mode_id}/index.html"
+        cm = game == "checkmate"
         (dirp / "index.html").write_text(
-            page(game_label, label, mode_id, d["rows"], d["total"], d["note"]),
+            page(game_label, label, mode_id, d["rows"], d["total"], d["note"],
+                 col5_label="Puzzles" if cm else "Elo max",
+                 col5="puzzles" if cm else "elo_best"),
             encoding="utf-8")
         sitemap.append({"loc": url, "lastmod": frd})
         hub_rows.append(
             f'<li><a href="top/{game}/{mode_id}/">Top {esc(label)} — {esc(game_label)}</a> '
             f'(<a href="top/{game}/{mode_id}/index.html.txt">page</a>)'
-            + (f' — {d["total"]:,} joueurs classés'.replace(",", " ") if d["total"] else "")
+            + (f' — {d["total"]:,} '.replace(",", " ")
+               + ("comptes" if game == "checkmate" else "joueurs classés") if d["total"] else "")
             + "</li>")
         # top 10 texte
         llms_lines.append(f"## {game_label} — {label}")
-        llms_lines.append(text_top(d["rows"]))
+        if game == "checkmate":
+            llms_lines.append(text_checkmate(d["rows"]))
+        else:
+            llms_lines.append(text_top(d["rows"]))
         llms_lines.append("")
         # index joueurs
         for p in d["rows"][:60]:
@@ -370,7 +545,7 @@ def main():
     (PUB / "index.html").write_text(
         f"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
 <title>ChessLive — classements échecs en direct (pages publiques)</title>
-<meta name="description" content="Classements publics SimpleChess & SocialChess : top 100 par mode, joueurs, Elo. Pages lisibles par les moteurs de recherche et les IA.">
+<meta name="description" content="Classements publics SimpleChess, SocialChess & Checkmate (Chess Online & Offline) : top par mode, joueurs, Elo. Pages lisibles par les moteurs de recherche et les IA.">
 <link rel="canonical" href="{SITE}/public/">
 <style>body{{font-family:system-ui,Arial,sans-serif;background:#0a0e13;color:#eef4f8;padding:24px}}
 .wrap{{max-width:860px;margin:auto}}h1{{font-size:26px}}h1 span{{color:#7fdb6a}}
@@ -391,6 +566,12 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
     # players.txt
     pl_lines = [f"# ChessLive — index des meilleurs joueurs (généré le {frd})",
                 "# Format : pseudo | jeu | mode | elo | rang", ""]
+    me = (data.get(("checkmate", "rank")) or {}).get("me")
+    if me:
+        rg = f"#{me['rank']}" if me["rank"] else "hors rang"
+        rc = f" (n°{me['rank_country']} {me['country']})" if me["rank_country"] else ""
+        pl_lines.append(f"{me['username']} | Checkmate | Classement (Elo) | {me['elo']} | {rg}{rc} "
+                        f"· {me['games']} parties · {me['puzzles']} pts puzzles")
     for nm, p in sorted(players.items(), key=lambda kv: -kv[1]["elo"])[:300]:
         pl_lines.append(f"{nm} | {p['provider']} | {p['mode']} | {p['elo']} | #{p['rank']}")
     (PUB / "players.txt").write_text("\n".join(pl_lines), encoding="utf-8")
@@ -401,16 +582,18 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
 <rss version="2.0"><channel>
 <title>ChessLive — classements échecs en direct</title>
 <link>{SITE}/public/</link>
-<description>Top 10 SimpleChess & SocialChess, mis à jour quotidiennement</description>
+<description>Top 10 SimpleChess, SocialChess & Checkmate, mis à jour quotidiennement</description>
 <lastBuildDate>{datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
 {''.join(rss_items)}</channel></rss>""",
         encoding="utf-8")
 
     # versions texte des pages (confort IA)
     for (game, mode_id), d in data.items():
+        tot_lbl = "Comptes au total : " if game == "checkmate" else "Total joueurs classés : "
+        body = text_checkmate(d["rows"]) if game == "checkmate" else text_top(d["rows"])
         txt = (f"ChessLive — Top {d['label']} {game} ({frd})\n"
-               + ("Total joueurs classés : " + str(d["total"]) + "\n" if d["total"] else "")
-               + text_top(d["rows"]) + "\n")
+               + (tot_lbl + str(d["total"]) + "\n" if d["total"] else "")
+               + body + "\n")
         (PUB / "top" / game / mode_id / "index.html.txt").write_text(txt, encoding="utf-8")
 
     # sitemap.xml
@@ -425,7 +608,8 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
     # résumé
     print(f"✅ Pages publiques générées le {frd} :")
     for (game, mode_id), d in data.items():
-        tot = f" — {d['total']:,} joueurs classés".replace(",", " ") if d["total"] else " (total non publié)"
+        tot = (f" — {d['total']:,} ".replace(",", " ")
+               + ("comptes" if game == "checkmate" else "joueurs classés")) if d["total"] else " (total non publié)"
         print(f"   {game}/{mode_id}: top {len(d['rows'])} " + tot)
 
 

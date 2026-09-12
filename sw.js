@@ -4,7 +4,7 @@
    - Données REST (classements/profils) : NETWORK FIRST + repli cache
    - Le WebSocket SocialChess est temps réel, non mis en cache.
    ============================================================= */
-const CACHE_NAME = "chesslive-v2";
+const CACHE_NAME = "chesslive-v3";
 const SHELL_URLS = [
   "./",
   "./index.html",

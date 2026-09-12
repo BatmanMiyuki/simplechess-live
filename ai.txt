@@ -1,5 +1,5 @@
 # AI.txt
-ChessLive — classements échecs en direct (SimpleChess, SocialChess)
+ChessLive — classements échecs en direct (SimpleChess, SocialChess, Checkmate)
 URL: https://batmanmiyuki.github.io/simplechess-live
 Contenu utile pour les agents IA:
 - https://batmanmiyuki.github.io/simplechess-live/public/llms-top.txt  (top 10 par mode, texte)
