@@ -507,7 +507,6 @@ const Checkmate = (()=>{
   const TOK_KEY="chesslive-cm-token";
   const LIMIT = Number(CFG.CHECKMATE_LIMIT||1000);           // fenêtre du classement officiel chargée
   const RANKED = {fieldFilter:{field:{fieldPath:"rankingGlobal"},op:"GREATER_THAN",value:{integerValue:"0"}}};
-  let tok=null, tokExp=0;
 
   const dec = v => {
     if(!v) return null;
@@ -524,26 +523,68 @@ const Checkmate = (()=>{
   };
   const decDoc = d => Object.fromEntries(Object.entries(d.fields||{}).map(([k,v])=>[k,dec(v)]));
 
-  /* session anonyme Firebase (fonction prévue par l'app) — jeton gardé en session */
-  async function token(){
-    if(tok && Date.now()<tokExp) return tok;
+  /* --- Session Firebase -------------------------------------------------
+     On réutilise UNE session anonyme (fonction prévue par l'app) le plus
+     longtemps possible : jeton conservé (localStorage), renouvelé par
+     « refresh token » avant expiration — on ne crée un nouveau compte
+     anonyme qu'en tout premier accès. Évite de saturer la limite de
+     connexions de Firebase (TOO_MANY_ATTEMPTS_TRY_LATER). */
+  let tok=null, tokExp=0, tokRefresh="", tokPromise=null;
+
+  function readTok(){
     try{
-      const c=JSON.parse(sessionStorage.getItem(TOK_KEY)||"null");
-      if(c && c.exp>Date.now()+30000){ tok=c.t; tokExp=c.exp; return tok; }
-    }catch(e){}
+      const raw=localStorage.getItem(TOK_KEY)||sessionStorage.getItem(TOK_KEY);
+      const c=raw?JSON.parse(raw):null;
+      return (c && c.t && c.exp) ? c : null;
+    }catch(e){ return null; }
+  }
+  function saveTok(t, expSec, rt){
+    tok=t; tokRefresh=rt||tokRefresh;
+    tokExp=Date.now()+(parseInt(expSec||"3600",10)-120)*1000;
+    try{ localStorage.setItem(TOK_KEY, JSON.stringify({t:tok, r:tokRefresh, exp:tokExp})); }catch(e){}
+  }
+  async function fetchTok(){
+    const c=readTok();
+    if(c && c.exp>Date.now()+60000){ tok=c.t; tokRefresh=c.r||""; tokExp=c.exp; return tok; }
+    /* 1) renouveler la session existante (aucune création de compte) */
+    if(c && c.r){
+      try{
+        const r=await fetch(`https://securetoken.googleapis.com/v1/token?key=${API_KEY}`,{method:"POST",
+          headers:{"Content-Type":"application/x-www-form-urlencoded"},
+          body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(c.r)});
+        if(r.ok){ const j=await r.json(); saveTok(j.id_token, j.expires_in, j.refresh_token); return tok; }
+      }catch(e){}
+    }
+    /* 2) tout premier accès : session anonyme */
     const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`,
       {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({returnSecureToken:true})});
-    if(!r.ok) throw new Error("Checkmate : accès refusé ("+r.status+")");
-    const j=await r.json();
-    tok=j.idToken; tokExp=Date.now()+(parseInt(j.expiresIn||"3600",10)-60)*1000;
-    try{ sessionStorage.setItem(TOK_KEY, JSON.stringify({t:tok,exp:tokExp})); }catch(e){}
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok || !j.idToken){
+      const msg=(j.error && j.error.message) || ("HTTP "+r.status);
+      throw new Error(/TOO_MANY_ATTEMPTS/i.test(msg)
+        ? "Checkmate : trop de connexions anonymes d'affilée — limite temporaire de Firebase, réessayez dans quelques minutes."
+        : "Checkmate : accès refusé ("+msg+")");
+    }
+    saveTok(j.idToken, j.expiresIn, j.refreshToken);
     return tok;
   }
-  async function runQuery(sq){
-    const t=await token();
-    const r=await fetch(`${FS}:runQuery`,{method:"POST",
+  function token(){
+    if(tok && Date.now()<tokExp) return Promise.resolve(tok);
+    if(tokPromise) return tokPromise;                 // un seul appel à la fois
+    tokPromise = fetchTok().finally(()=>{ tokPromise=null; });
+    return tokPromise;
+  }
+  async function rawQuery(t, sq){
+    return fetch(`${FS}:runQuery`,{method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+t},
       body:JSON.stringify({structuredQuery:sq})});
+  }
+  async function runQuery(sq){
+    let r = await rawQuery(await token(), sq);
+    if(r.status===401){                               // jeton expiré/révoqué : on renouvelle une fois
+      tok=null; tokExp=0; try{ localStorage.removeItem(TOK_KEY); }catch(e){}
+      r = await rawQuery(await token(), sq);
+    }
     if(!r.ok) throw new Error("Checkmate : "+(r.status===403?"accès classement refusé":("HTTP "+r.status)));
     const j=await r.json();
     return (Array.isArray(j)?j:[]).filter(x=>x.document).map(x=>({...decDoc(x.document), _id:x.document.name.split("/").pop()}));
@@ -593,7 +634,9 @@ const Checkmate = (()=>{
                               {fieldPath:"rankingGlobal"},{fieldPath:"rankingCountry"},
                               {fieldPath:"stats"},{fieldPath:"puzzles"}]};
       const ccEq = v => ({fieldFilter:{field:{fieldPath:"country"},op:"EQUAL",value:{stringValue:v}}});
+      await token();          // échoue tout de suite si la session est refusée
       const out = [];
+      const errs = [];
       const BATCH = 20;
       for(let start=1; start<=n; start+=BATCH){
         const ks=[];
@@ -602,7 +645,7 @@ const Checkmate = (()=>{
           from:[{collectionId:"users"}],
           where:{compositeFilter:{op:"AND", filters:[ccEq(cc),
             {fieldFilter:{field:{fieldPath:"rankingCountry"},op:"EQUAL",value:{integerValue:String(k)}}}]}},
-          limit:2, select:SELECT}).catch(()=>[])));
+          limit:2, select:SELECT}).catch(e=>{ errs.push(String(e.message||e)); return []; })));
         got.forEach(list => list.forEach(f=>{
           const r = toRow(f);
           r.rank = Number(f.rankingCountry)||0;
@@ -614,6 +657,7 @@ const Checkmate = (()=>{
       const seen=new Set();
       const rows = out.filter(r=>r.rank>0 && !seen.has(r.id) && seen.add(r.id))
                       .sort((a,b)=>a.rank-b.rank);
+      if(!rows.length && errs.length) throw new Error(errs[0]);   // panne (session/quota) ≠ pays vide
       return {rows, note: rows.length ? "" : "Aucun joueur classé pour ce pays dans la base.",
         source:`Checkmate (Splend Apps) · classement national ${cc} officiel · ${rows.length} premiers · lecture seule`};
     },
@@ -692,15 +736,20 @@ let remoteRow = null, remoteFor = "";   // Checkmate : joueur trouvé directemen
 const countryTopCache = {};             // Checkmate : classements nationaux déjà chargés (cc -> lignes)
 const countryTopPending = {};
 /* charge à la demande le classement national d'un pays (Checkmate) */
+const countryTopError = {};             // dernier message d'erreur par pays
 async function ensureCountryTop(cc){
-  if(!cc || countryTopCache[cc] || countryTopPending[cc] || !PROVIDERS.checkmate) return;
+  if(!cc || (countryTopCache[cc]&&countryTopCache[cc].length) || countryTopPending[cc] || !PROVIDERS.checkmate) return;
   countryTopPending[cc]=true;
   try{
     const r = await Checkmate.countryTop(cc, CFG.CHECKMATE_COUNTRY_DEPTH||100);
     countryTopCache[cc] = r.rows || [];
-  }catch(e){ countryTopCache[cc] = []; }
+    countryTopError[cc] = countryTopCache[cc].length ? "" : "Aucun joueur classé pour ce pays dans la base.";
+  }catch(e){
+    delete countryTopCache[cc];                       // on ne mémorise pas un échec
+    countryTopError[cc] = e.message || String(e);
+  }
   countryTopPending[cc]=false;
-  if($("countryFilter").value===cc) render();
+  if($("countryFilter").value===cc || state.mode==="france") render();
 }
 let state = {
   game: GAMES[params.get("game")] ? params.get("game") : (GAMES[CFG.DEFAULT_GAME]?CFG.DEFAULT_GAME:"simplechess"),
@@ -765,6 +814,8 @@ async function load(force=false){
     let res = getCached(key);
     if(!res || force){ res = await p.leaderboard(state.mode); setCached(key,res); }
     lastPlayers = res.rows;
+    if(state.game==="checkmate" && state.mode==="france" && res.rows.length)
+      countryTopCache[CFG.CHECKMATE_COUNTRY||"FR"] = res.rows;
     snapSave(state.game, state.mode, res.rows);   // A1 : snapshot 1/30 min
     $("sourceInfo").textContent="Source : "+res.source;
     populateCountries();
@@ -783,15 +834,24 @@ function render(){
   /* Checkmate : les rangs officiels n'étant pas triables par pays côté requête,
      le filtre pays charge le classement national complet (au lieu du seul top mondial). */
   let base=lastPlayers;
-  const national = state.game==="checkmate" && cc;
+  const natCC = state.game==="checkmate" ? (cc || (state.mode==="france" ? (CFG.CHECKMATE_COUNTRY||"FR") : "")) : "";
+  const national = !!natCC;
+  const tabCC = CFG.CHECKMATE_COUNTRY || "FR";
   if(national){
-    if(countryTopCache[cc]) base=countryTopCache[cc];
-    else { base=[]; ensureCountryTop(cc); }
+    const cached = countryTopCache[natCC];
+    if(cached && cached.length) base=cached;                          // classement national déjà chargé
+    else if(state.mode==="france" && (!cc || cc===tabCC)) base=lastPlayers; // l'onglet EST ce classement
+    else { base=[]; ensureCountryTop(natCC); }                        // chargement à la demande
   }
   let rows=applyMoversSort(base.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
   if(!rows.length && remoteRow && needle && remoteRow.name.toLowerCase().includes(needle)) rows=[remoteRow];
   const tb=$("tbody"); tb.innerHTML="";
-  if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`; }
+  if(!rows.length){
+    const err = national ? countryTopError[natCC] : null;
+    tb.innerHTML = err
+      ? `<tr><td colspan="9" class="msg">⚠️ ${esc(err)}</td></tr>`
+      : `<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`;
+  }
   if(moversOn){
     const info=$("moversInfo");
     const n=lastPlayers.length;
@@ -820,10 +880,10 @@ function render(){
     tb.appendChild(tr);
   });
   const el=$("count");
-  if(national && !countryTopCache[cc]){
-    el.textContent = `chargement du classement national ${cc}…`;
+  if(national && !base.length){
+    el.textContent = `chargement du classement national ${natCC}…`;
   } else {
-    const scope = national ? ("classement national "+cc+" · rangs officiels")
+    const scope = national ? ("classement national "+natCC+" · rangs officiels")
                 : (state.game==="checkmate" ? "classement officiel de l'app"
                                             : "top "+lastPlayers.length+" mondial");
     const detail = national ? ""
@@ -1158,7 +1218,7 @@ async function providerTotals(){
       const nf=n=>Number(n||0).toLocaleString("fr-FR");
       const cc=CFG.CHECKMATE_COUNTRY||"FR";
       const nat=countryTopCache[cc];
-      res={byMode:{rank:t.ranked, france: nat? nat.length : null},
+      res={byMode: nat? {rank:t.ranked, france:nat.length} : {rank:t.ranked},
            note:`${nf(t.ranked)} joueurs classés (ceux qui portent un rang officiel dans l'app) sur ${nf(t.all)} comptes au total. ChessLive affiche les ${Number(CFG.CHECKMATE_LIMIT||1000).toLocaleString("fr-FR")} premiers au niveau mondial${nat?`, et les ${nat.length} premiers du classement ${cc}`:" — ouvrez le filtre pays ou l'onglet national pour charger un classement par pays"}. Aucun total national n'est publié par l'app.`};
       cache[k24]={t:Date.now(), v:res};
     }catch(e){
