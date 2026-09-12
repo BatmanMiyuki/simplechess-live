@@ -1,5 +1,5 @@
 ChessLive — Top Fast socialchess (2026-09-12)
-Total joueurs classés : 16985
+Total joueurs classés : 16993
 1. 🇱🇧 Alain 🇱🇧 — Elo 2352 (max 2352, 1154 parties, 992V/136D/26N, pays LB)
 2. stas_lugansk — Elo 2325 (max 2325, 3494 parties, 2934V/509D/51N, pays ES)
 3. Pentagon. — Elo 2288 (max 2288, 417 parties, 406V/7D/4N, pays KZ)
@@ -9,4 +9,4 @@ Total joueurs classés : 16985
 7. zAiglos — Elo 2273 (max 2273, 363 parties, 355V/7D/1N, pays NL)
 8. VegerenessYOUTUBE — Elo 2272 (max 2272, 278 parties, 210V/65D/3N, pays CA)
 9. Exhumador_de_Put0$ — Elo 2253 (max 2253, 611 parties, 490V/101D/20N, pays MX)
-10. estturjap — Elo 2217 (max 2217, 4627 parties, 4062V/461D/104N, pays CO)
+10. doremon — Elo 2231 (max 2231, 2083 parties, 1458V/551D/74N, pays IN)

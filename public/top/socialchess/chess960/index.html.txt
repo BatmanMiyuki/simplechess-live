@@ -1,12 +1,12 @@
 ChessLive — Top Chess960 socialchess (2026-09-12)
-Total joueurs classés : 2934
+Total joueurs classés : 2935
 1. EttoreWalter — Elo 2178 (max 2178, 19 parties, 11V/8D/0N, pays IT)
 2. sdeiana — Elo 2104 (max 2104, 138 parties, 121V/8D/9N, pays IT)
-3. doremon — Elo 2088 (max 2088, 133 parties, 94V/36D/3N, pays IN)
-4. PaoloChace — Elo 2073 (max 2073, 500 parties, 410V/70D/20N, pays PE)
-5. Pafonso — Elo 2064 (max 2064, 84 parties, 69V/15D/0N, pays PT)
+3. PaoloChace — Elo 2073 (max 2073, 500 parties, 410V/70D/20N, pays PE)
+4. Pafonso — Elo 2064 (max 2064, 84 parties, 69V/15D/0N, pays PT)
+5. doremon — Elo 2050 (max 2050, 141 parties, 99V/39D/3N, pays IN)
 6. Aruran — Elo 2050 (max 2050, 274 parties, 229V/41D/4N, pays FR)
 7. DrMojoRisin — Elo 2038 (max 2038, 1919 parties, 1774V/103D/42N, pays US)
 8. AlexeyQuijano — Elo 2017 (max 2017, 3173 parties, 2417V/640D/116N, pays MX)
 9. yauey — Elo 2014 (max 2014, 6382 parties, 4245V/1805D/332N, pays GB)
-10. Chufty0815 — Elo 2003 (max 2003, 3777 parties, 3138V/552D/87N, pays DE)
+10. Chufty0815 — Elo 2007 (max 2007, 3779 parties, 3140V/552D/87N, pays DE)

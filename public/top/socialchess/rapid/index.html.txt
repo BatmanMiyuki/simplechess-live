@@ -1,5 +1,5 @@
 ChessLive — Top Rapid socialchess (2026-09-12)
-Total joueurs classés : 7814
+Total joueurs classés : 7817
 1. 🇱🇧 Alain 🇱🇧 — Elo 2211 (max 2211, 408 parties, 366V/30D/12N, pays LB)
 2. JoeHGasvan — Elo 2144 (max 2144, 1524 parties, 1411V/101D/12N, pays GB)
 3. shem2026 — Elo 2108 (max 2108, 256 parties, 189V/66D/1N, pays IR)

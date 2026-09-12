@@ -61,9 +61,11 @@ SCo_KEY = "stats"
 CM_KEY = "AIzaSyBRKClWWQ0u4Av4Ubq84-a-a3pRRU6-H70"      # clé publique embarquée dans l'APK
 CM_PROJ = "checkmate-17950"
 CM_FS = f"https://firestore.googleapis.com/v1/projects/{CM_PROJ}/databases/(default)/documents"
-CM_MAX_ELO, CM_MAX_WINS = 5000, 200000                    # garde-fous : profils incohérents
-CM_NOTE = ("Checkmate ne publie pas de « joueurs classés » distinct : le compteur "
-           "indique le nombre total de comptes de la base.")
+CM_RANKED = {"fieldFilter": {"field": {"fieldPath": "rankingGlobal"},
+                            "op": "GREATER_THAN", "value": {"integerValue": "0"}}}
+CM_NOTE = ("Classement officiel de l'app : seuls les joueurs qui portent un rang "
+           "(rankingGlobal) y figurent — les comptes sans rang en sont absents, "
+           "comme dans l'application.")
 
 
 def _cm_dec(v):
@@ -103,9 +105,11 @@ async def _cm_run(client, tok, query) -> list:
     return [_cm_doc(x["document"]) for x in r.json() if "document" in x]
 
 
-async def _cm_count(client, tok, level_gt=None):
+async def _cm_count(client, tok, ranked=False, level_gt=None):
     sq = {"from": [{"collectionId": "users"}]}
-    if level_gt is not None:
+    if ranked:
+        sq["where"] = CM_RANKED
+    elif level_gt is not None:
         sq["where"] = {"fieldFilter": {"field": {"fieldPath": "level"}, "op": "GREATER_THAN",
                                        "value": {"integerValue": str(level_gt)}}}
     r = await client.post(f"{CM_FS}:runAggregationQuery",
@@ -122,44 +126,34 @@ async def _cm_count(client, tok, level_gt=None):
 
 
 async def fetch_checkmate(limit: int = 100) -> dict:
-    """Top Checkmate : tri Elo décroissant, puis victoires, puis points de puzzles
-    (règle de classement de l'app). Lecture seule, session anonyme."""
+    """Top du classement OFFICIEL de l'app : joueurs classés (rang officiel),
+    listés par rang. Lecture seule, session anonyme."""
     async with httpx.AsyncClient(timeout=90) as client:
         tok = await _cm_token(client)
         docs = await _cm_run(client, tok, {
             "from": [{"collectionId": "users"}],
-            "orderBy": [{"field": {"fieldPath": "level"}, "direction": "DESCENDING"}],
+            "where": CM_RANKED,
+            "orderBy": [{"field": {"fieldPath": "rankingGlobal"}, "direction": "ASCENDING"}],
             "limit": limit})
+        ranked = await _cm_count(client, tok, ranked=True)
         total = await _cm_count(client, tok)
-        over2000 = await _cm_count(client, tok, 2000)
-        over2500 = await _cm_count(client, tok, 2500)
 
-    def plausible(f):
-        st = f.get("stats") or {}
-        lvl, w, allg = int(f.get("level") or 0), int(st.get("gamesWins") or 0), int(st.get("gamesAll") or 0)
-        return lvl <= CM_MAX_ELO and w <= CM_MAX_WINS and (allg == 0 or w <= allg * 1.2)
-
-    def score(f):
-        st, pz = f.get("stats") or {}, f.get("puzzles") or {}
-        return (int(f.get("level") or 0) * 10**7 + int(st.get("gamesWins") or 0) * 100
-                + int(pz.get("puzzlesPoints") or 0))
-
-    good = sorted((f for f in docs if plausible(f)), key=score, reverse=True)[:limit]
+    docs = [f for f in docs if int(f.get("rankingGlobal") or 0) > 0]
     rows = []
-    for i, f in enumerate(good, 1):
+    for f in docs:
         st, pz = f.get("stats") or {}, f.get("puzzles") or {}
-        rows.append({"rank": i, "username": f.get("username") or f["_id"],
+        rows.append({"rank": int(f.get("rankingGlobal") or 0), "username": f.get("username") or f["_id"],
                      "country": f.get("country") or "", "elo": int(f.get("level") or 0),
                      "elo_best": None, "wins": int(st.get("gamesWins") or 0),
                      "losses": int(st.get("gamesLosses") or 0), "draws": int(st.get("gamesDraws") or 0),
                      "games": int(st.get("gamesAll") or 0),
-                     "puzzles": int(pz.get("puzzlesPoints") or 0)})
+                     "puzzles": int(pz.get("puzzlesPoints") or 0),
+                     "rank_country": int(f.get("rankingCountry") or 0)})
     note = CM_NOTE
-    if over2000 and over2500:
-        note += (f" {over2000:,} comptes au-dessus de 2 000 Elo et {over2500:,} au-dessus de 2 500 "
-                 "(mesure ChessLive).").replace(",", " ")
-    return {"label": "Classement (Elo)", "rows": rows, "total": total, "note": note,
-            "skipped": len(docs) - len(good)}
+    if ranked is not None and total is not None:
+        note += (f" {ranked:,} joueurs classés sur {total:,} comptes au total."
+                 .replace(",", " "))
+    return {"label": "Classement (Elo)", "rows": rows, "total": ranked, "note": note}
 
 
 def config_pseudos() -> tuple:
@@ -189,6 +183,7 @@ async def fetch_checkmate_player(username: str):
     f = sorted(docs, key=lambda d: (not d.get("isAnonymous"), (d.get("stats") or {}).get("gamesAll") or 0),
                reverse=True)[0]
     return {"username": f.get("username"), "elo": int(f.get("level") or 0),
+            "ranked": int(f.get("rankingGlobal") or 0),
             "rank": int(f.get("rankingGlobal") or 0), "rank_country": int(f.get("rankingCountry") or 0),
             "country": f.get("country") or "", "games": int((f.get("stats") or {}).get("gamesAll") or 0),
             "wins": int((f.get("stats") or {}).get("gamesWins") or 0),
@@ -519,7 +514,7 @@ def main():
             f'<li><a href="top/{game}/{mode_id}/">Top {esc(label)} — {esc(game_label)}</a> '
             f'(<a href="top/{game}/{mode_id}/index.html.txt">page</a>)'
             + (f' — {d["total"]:,} '.replace(",", " ")
-               + ("comptes" if game == "checkmate" else "joueurs classés") if d["total"] else "")
+               + "joueurs classés" if d["total"] else "")
             + "</li>")
         # top 10 texte
         llms_lines.append(f"## {game_label} — {label}")
@@ -568,7 +563,7 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
                 "# Format : pseudo | jeu | mode | elo | rang", ""]
     me = (data.get(("checkmate", "rank")) or {}).get("me")
     if me:
-        rg = f"#{me['rank']}" if me["rank"] else "hors rang"
+        rg = f"#{me['rank']}" if me["rank"] else f"non classé (compte hors classement, {me.get('ranked',0)})"
         rc = f" (n°{me['rank_country']} {me['country']})" if me["rank_country"] else ""
         pl_lines.append(f"{me['username']} | Checkmate | Classement (Elo) | {me['elo']} | {rg}{rc} "
                         f"· {me['games']} parties · {me['puzzles']} pts puzzles")
@@ -608,8 +603,7 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
     # résumé
     print(f"✅ Pages publiques générées le {frd} :")
     for (game, mode_id), d in data.items():
-        tot = (f" — {d['total']:,} ".replace(",", " ")
-               + ("comptes" if game == "checkmate" else "joueurs classés")) if d["total"] else " (total non publié)"
+        tot = f" — {d['total']:,} joueurs classés".replace(",", " ") if d["total"] else " (total non publié)"
         print(f"   {game}/{mode_id}: top {len(d['rows'])} " + tot)
 
 

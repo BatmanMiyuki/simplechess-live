@@ -2,68 +2,68 @@
 # Format : pseudo | jeu | mode | elo | rang
 
 ChessMiyuki | Checkmate | Classement (Elo) | 2400 | #1783 (n°25 FR) · 156 parties · 231 pts puzzles
-Dhiezyrose | Checkmate | Classement (Elo) | 3899 | #1
-gaila19001900 | Checkmate | Classement (Elo) | 3899 | #2
-angana2829 | Checkmate | Classement (Elo) | 3899 | #3
-Swatisharma | Checkmate | Classement (Elo) | 3899 | #4
-N_R | Checkmate | Classement (Elo) | 3678 | #5
-Eccentro | Checkmate | Classement (Elo) | 3601 | #6
-Drejci | Checkmate | Classement (Elo) | 3493 | #7
-NuriddinovBahodir932 | Checkmate | Classement (Elo) | 3471 | #8
-satsuk | Checkmate | Classement (Elo) | 3456 | #9
-#AU#XuyOl9SnNCPfdyhU2DJBN1ePjWo1 | Checkmate | Classement (Elo) | 3430 | #10
-GMVendra | Checkmate | Classement (Elo) | 3402 | #11
-Naguib | Checkmate | Classement (Elo) | 3309 | #12
-hearthacker230 | Checkmate | Classement (Elo) | 3247 | #13
-sergejseschein5 | Checkmate | Classement (Elo) | 3232 | #14
-PATHWAY | Checkmate | Classement (Elo) | 3211 | #15
-ferytole_3576 | Checkmate | Classement (Elo) | 3203 | #16
-MostafaHgzy | Checkmate | Classement (Elo) | 3202 | #17
-KIZZFIZZYT2 | Checkmate | Classement (Elo) | 3170 | #18
 HaineZau | SimpleChess | Blitz | 3166 | #1
-beyaz_kurt | Checkmate | Classement (Elo) | 3130 | #19
-svdovychenko1984 | Checkmate | Classement (Elo) | 3124 | #20
-Perdeu | Checkmate | Classement (Elo) | 3122 | #21
-ffrasson60 | Checkmate | Classement (Elo) | 3115 | #22
-jamesBOND | Checkmate | Classement (Elo) | 3109 | #23
-Levaughn | Checkmate | Classement (Elo) | 3100 | #24
-ibnuhilmansyahaz | Checkmate | Classement (Elo) | 3093 | #25
-1357911133133 | Checkmate | Classement (Elo) | 3091 | #26
-Kavindu_69 | Checkmate | Classement (Elo) | 3090 | #27
-PRAKO-N-TOL_lll | Checkmate | Classement (Elo) | 3089 | #28
-studienkreisandreask | Checkmate | Classement (Elo) | 3085 | #29
-AJH | Checkmate | Classement (Elo) | 3073 | #30
-lonepetall | Checkmate | Classement (Elo) | 3071 | #31
-GM_brohim | Checkmate | Classement (Elo) | 3059 | #32
-uriblass | Checkmate | Classement (Elo) | 3052 | #33
-Surajrana77 | Checkmate | Classement (Elo) | 3051 | #34
-melkuks | Checkmate | Classement (Elo) | 3047 | #35
-Ilkerbey | Checkmate | Classement (Elo) | 3047 | #36
-olfale | Checkmate | Classement (Elo) | 3047 | #37
-saadkas | Checkmate | Classement (Elo) | 3047 | #38
-Comanche__RS | Checkmate | Classement (Elo) | 3043 | #39
-yasht3233 | Checkmate | Classement (Elo) | 3040 | #40
-Fernando__Sucre | Checkmate | Classement (Elo) | 3035 | #41
-123daksh | Checkmate | Classement (Elo) | 3006 | #42
-RaAdKiNg | Checkmate | Classement (Elo) | 3004 | #43
-StockfishV8 | Checkmate | Classement (Elo) | 3004 | #44
-Marios1996 | Checkmate | Classement (Elo) | 3001 | #45
-Sasrir | Checkmate | Classement (Elo) | 3001 | #46
-CaspianKing | Checkmate | Classement (Elo) | 3000 | #47
-wxndnOnChess | Checkmate | Classement (Elo) | 3000 | #48
-SantosChessDotCom | Checkmate | Classement (Elo) | 2997 | #49
-SVYDOVY | Checkmate | Classement (Elo) | 2996 | #50
-GM-FAIZIMOHAMEDLAID | Checkmate | Classement (Elo) | 2996 | #51
-imadbaig | Checkmate | Classement (Elo) | 2996 | #52
-rakib69 | Checkmate | Classement (Elo) | 2995 | #53
-raresbeganu7 | Checkmate | Classement (Elo) | 2995 | #54
-Chris_24 | Checkmate | Classement (Elo) | 2988 | #55
-molodcov | Checkmate | Classement (Elo) | 2983 | #56
-Salonii | Checkmate | Classement (Elo) | 2981 | #57
-montezaander | Checkmate | Classement (Elo) | 2978 | #58
-saadbaig | Checkmate | Classement (Elo) | 2970 | #59
-yaxonmonteza | Checkmate | Classement (Elo) | 2969 | #60
+Oferbruk | Checkmate | Classement (Elo) | 2887 | #1
+Khalid82 | Checkmate | Classement (Elo) | 2887 | #2
+rast_max22rus | Checkmate | Classement (Elo) | 2887 | #3
+srini78 | Checkmate | Classement (Elo) | 2887 | #4
+telenkovval59 | Checkmate | Classement (Elo) | 2887 | #5
+SharkFish | Checkmate | Classement (Elo) | 2887 | #6
+sangermajidi | Checkmate | Classement (Elo) | 2887 | #7
+IKRASH-912326 | Checkmate | Classement (Elo) | 2887 | #8
+Sultan2 | Checkmate | Classement (Elo) | 2887 | #10
+HAMID- | Checkmate | Classement (Elo) | 2886 | #11
+humayonmajidi2 | Checkmate | Classement (Elo) | 2885 | #9
+_tv- | Checkmate | Classement (Elo) | 2877 | #12
+ChessproUSA | Checkmate | Classement (Elo) | 2862 | #13
+IKRASH-AWZ | Checkmate | Classement (Elo) | 2850 | #14
+k_sudhy | Checkmate | Classement (Elo) | 2850 | #15
+kjbrzi | Checkmate | Classement (Elo) | 2831 | #30
+SANSANYCH | Checkmate | Classement (Elo) | 2828 | #16
+ZARQAVI | Checkmate | Classement (Elo) | 2820 | #17
+9090808019870601 | Checkmate | Classement (Elo) | 2816 | #19
+YOHANES_MGS | Checkmate | Classement (Elo) | 2815 | #18
+Petch_Phongsathorn | Checkmate | Classement (Elo) | 2815 | #20
+ChampmanU79 | Checkmate | Classement (Elo) | 2811 | #21
+Lars_Alexandersson | Checkmate | Classement (Elo) | 2809 | #23
+EliasChavezR | Checkmate | Classement (Elo) | 2807 | #24
+mostafaelbardesy | Checkmate | Classement (Elo) | 2804 | #25
+EliasEnriqueChavez | Checkmate | Classement (Elo) | 2804 | #26
+shawkernow | Checkmate | Classement (Elo) | 2801 | #28
+mandobando14 | Checkmate | Classement (Elo) | 2798 | #27
+Lionsgame | Checkmate | Classement (Elo) | 2795 | #29
+Pac-Man | Checkmate | Classement (Elo) | 2790 | #32
+TvoiSon | Checkmate | Classement (Elo) | 2789 | #34
+GMAyush | Checkmate | Classement (Elo) | 2788 | #33
+ashot01012022 | Checkmate | Classement (Elo) | 2784 | #35
+KRYGELj | Checkmate | Classement (Elo) | 2782 | #31
+JABQ | Checkmate | Classement (Elo) | 2777 | #38
+gintonic555jazz | Checkmate | Classement (Elo) | 2777 | #39
+chiominto2012 | Checkmate | Classement (Elo) | 2775 | #36
+JavielFernandez | Checkmate | Classement (Elo) | 2774 | #37
+pinoebbasta1953 | Checkmate | Classement (Elo) | 2774 | #42
+Meenu_2_1034 | Checkmate | Classement (Elo) | 2773 | #41
+nynawa | Checkmate | Classement (Elo) | 2769 | #43
+deknight | Checkmate | Classement (Elo) | 2769 | #45
+Ulrico | Checkmate | Classement (Elo) | 2767 | #40
+CRIVE | Checkmate | Classement (Elo) | 2763 | #46
+TheSoulMate | Checkmate | Classement (Elo) | 2760 | #48
+dolzhenkovaleksei2 | Checkmate | Classement (Elo) | 2759 | #47
+regisslina | Checkmate | Classement (Elo) | 2758 | #49
+irwanacoustic | Checkmate | Classement (Elo) | 2756 | #51
+ABDULWAHAB-ALI | Checkmate | Classement (Elo) | 2751 | #60
+zasuhinan83 | Checkmate | Classement (Elo) | 2750 | #53
+bapatpj | Checkmate | Classement (Elo) | 2748 | #54
+ShirShahJafa | Checkmate | Classement (Elo) | 2745 | #44
 Miyukipa | SimpleChess | Blitz | 2744 | #2
+QATAR | Checkmate | Classement (Elo) | 2743 | #55
+terrellsanders96 | Checkmate | Classement (Elo) | 2741 | #52
+agi19740404 | Checkmate | Classement (Elo) | 2741 | #56
+MEgaCHess | Checkmate | Classement (Elo) | 2740 | #58
+GM_cao | Checkmate | Classement (Elo) | 2740 | #59
+fabmaitre73 | Checkmate | Classement (Elo) | 2729 | #57
+BeautyFinn | Checkmate | Classement (Elo) | 2716 | #61
+akess1 | Checkmate | Classement (Elo) | 2706 | #22
 Better67 | SimpleChess | Blitz | 2616 | #3
 GillesLeGrand | SimpleChess | Puzzle Battle | 2601 | #1
 444ddd | SimpleChess | Blitz | 2513 | #4
@@ -91,9 +91,8 @@ Pentagon. | SocialChess | Fast | 2288 | #3
 rotoce7 | SimpleChess | Blitz | 2287 | #17
 kogotin | SimpleChess | Blitz | 2286 | #18
 vintangecordoba | SimpleChess | Blitz | 2286 | #19
-moaaa | SimpleChess | Rapid | 2282 | #3
 TheBigKat | SocialChess | Slow | 2282 | #1
-Chamaj | SimpleChess | Rapid | 2281 | #4
+Chamaj | SimpleChess | Rapid | 2281 | #3
 xadrez95 | SimpleChess | Blitz | 2278 | #20
 A. Goryachkina | SocialChess | Fast | 2275 | #5
 manoular | SimpleChess | Blitz | 2274 | #21
@@ -101,17 +100,17 @@ Warrior poet | SocialChess | Blitz | 2273 | #7
 VegerenessYOUTUBE | SocialChess | Fast | 2272 | #8
 Carlsberg | SimpleChess | Blitz | 2269 | #22
 Patatov | SimpleChess | Blitz | 2267 | #23
-arktikmanzzzz | SimpleChess | Blitz | 2263 | #25
-asdort | SimpleChess | Blitz | 2260 | #26
+arktikmanzzzz | SimpleChess | Blitz | 2263 | #24
+asdort | SimpleChess | Blitz | 2260 | #25
 FLH | SocialChess | Slow | 2259 | #2
-Chessmass | SimpleChess | Rapid | 2258 | #5
-Xuentylom | SimpleChess | Blitz | 2257 | #27
-MIFTERIAN | SimpleChess | Blitz | 2255 | #28
-Anthile | SimpleChess | Rapid | 2255 | #6
+Chessmass | SimpleChess | Rapid | 2258 | #4
+Xuentylom | SimpleChess | Blitz | 2257 | #26
+MIFTERIAN | SimpleChess | Blitz | 2255 | #27
+Anthile | SimpleChess | Rapid | 2255 | #5
 pashatechnique1 | SocialChess | Blitz | 2254 | #8
 Exhumador_de_Put0$ | SocialChess | Fast | 2253 | #9
-art289 | SimpleChess | Blitz | 2252 | #24
-sax2 | SimpleChess | Rapid | 2245 | #7
+art289 | SimpleChess | Blitz | 2252 | #29
+sax2 | SimpleChess | Rapid | 2245 | #6
 malodi | SimpleChess | Blitz | 2244 | #30
 MobyDick53 | SocialChess | Blitz | 2244 | #9
 Maomeno | SocialChess | Blitz | 2243 | #10
@@ -126,11 +125,12 @@ Elbilia | SimpleChess | Blitz | 2235 | #35
 fenad56 | SimpleChess | Puzzle Battle | 2233 | #4
 Dayvid | SocialChess | Blitz | 2233 | #12
 pafolius | SimpleChess | Blitz | 2232 | #36
+doremon | SocialChess | Bullet | 2232 | #4
 sashkosashko | SimpleChess | Blitz | 2231 | #37
-Chufty0815 | SocialChess | Bullet | 2231 | #4
+Chufty0815 | SocialChess | Bullet | 2231 | #5
 TactiTal | SimpleChess | Blitz | 2230 | #38
 Gotsaaaton | SimpleChess | Blitz | 2230 | #39
-optimusprime2017 | SocialChess | Bullet | 2227 | #5
+optimusprime2017 | SocialChess | Bullet | 2230 | #6
 Notsoclear | SimpleChess | Blitz | 2226 | #40
 NOOSAUCE | SimpleChess | Bullet | 2224 | #5
 Mase | SimpleChess | Blitz | 2223 | #41
@@ -143,17 +143,16 @@ LuccaSG2b | SimpleChess | Puzzle Battle | 2220 | #5
 DRYADU | SocialChess | Blitz | 2220 | #14
 Cda | SimpleChess | Blitz | 2217 | #45
 Nanat | SimpleChess | Blitz | 2217 | #46
-AlexeyQuijano | SocialChess | Bullet | 2217 | #6
-estturjap | SocialChess | Fast | 2217 | #10
+AlexeyQuijano | SocialChess | Bullet | 2217 | #7
+estturjap | SocialChess | Fast | 2217 | #11
 NaveenSsy | SimpleChess | Blitz | 2214 | #47
 👑👸JOHN1970 | SocialChess | Slow | 2214 | #6
 🇩🇪TheLordTomasz | SocialChess | Blitz | 2213 | #16
-doremon | SocialChess | Fast | 2213 | #11
-haydendav | SocialChess | Fast | 2211 | #12
+haydendav | SocialChess | Fast | 2211 | #13
 Uriguri | SocialChess | Blitz | 2208 | #18
 Theglobettroter | SimpleChess | Blitz | 2207 | #48
 chesscaradec | SimpleChess | Blitz | 2206 | #49
-grantfam | SocialChess | Blitz | 2205 | #19
+grantfam | SocialChess | Blitz | 2205 | #20
 Diviners | SimpleChess | Blitz | 2201 | #50
 alamadrid1 | SimpleChess | Blitz | 2201 | #51
 ynos234 | SimpleChess | Blitz | 2201 | #52
@@ -169,26 +168,26 @@ Telafek | SimpleChess | Blitz | 2195 | #59
 chessdark | SimpleChess | Bullet | 2195 | #13
 Piba1 | SimpleChess | Puzzle Battle | 2193 | #6
 S.H.tra | SocialChess | Blitz | 2193 | #22
-kaspatout | SocialChess | Bullet | 2193 | #8
+kaspatout | SocialChess | Bullet | 2193 | #9
 loulou64x64 | SimpleChess | Blitz | 2191 | #60
 Miyuki Unstoppable | SocialChess | Blitz | 2190 | #23
 Slowandpainful234 | SocialChess | Fast | 2188 | #17
 PaoloChace | SocialChess | Fast | 2187 | #18
-Trystan | SimpleChess | Rapid | 2186 | #9
+Trystan | SimpleChess | Rapid | 2186 | #8
 Leona-S | SocialChess | Blitz | 2186 | #25
 Ernesto S. Karrion | SocialChess | Blitz | 2185 | #26
 Sydneyoung | SocialChess | Slow | 2182 | #7
 Goke | SimpleChess | Puzzle Battle | 2181 | #8
 Thetwingambit | SocialChess | Blitz | 2181 | #27
-djanechess | SimpleChess | Rapid | 2180 | #10
+djanechess | SimpleChess | Rapid | 2180 | #9
 PurpleTurtle | SimpleChess | Bullet | 2179 | #16
-Allmyloving14 | SimpleChess | Rapid | 2178 | #11
+Allmyloving14 | SimpleChess | Rapid | 2178 | #10
 EttoreWalter | SocialChess | Chess960 | 2178 | #1
 SGUARDO PORCINO | SocialChess | Blitz | 2176 | #28
 Chessto6 | SimpleChess | Puzzle Battle | 2174 | #9
 PAV 78 | SocialChess | Slow | 2174 | #8
-Zalome | SimpleChess | Rapid | 2173 | #13
-topos | SimpleChess | Rapid | 2173 | #14
+Zalome | SimpleChess | Rapid | 2173 | #12
+topos | SimpleChess | Rapid | 2173 | #13
 NiiLoC | SocialChess | Blitz | 2172 | #29
 ginchi | SimpleChess | Bullet | 2165 | #17
 Yahbak | SimpleChess | Bullet | 2163 | #18
@@ -196,7 +195,7 @@ Lebinh | SimpleChess | Chess960 | 2163 | #4
 malachi23 | SocialChess | Bullet | 2163 | #11
 shem2026 | SocialChess | Blitz | 2161 | #30
 Arken_BY | SocialChess | Blitz | 2161 | #31
-Pcasa74 | SimpleChess | Rapid | 2160 | #16
+Pcasa74 | SimpleChess | Rapid | 2160 | #15
 Windjammer10 | SocialChess | Slow | 2159 | #9
 wakleemqn | SocialChess | Blitz | 2158 | #33
 HarryPopper | SocialChess | Blitz | 2157 | #34
@@ -205,38 +204,38 @@ LAMPA | SocialChess | Blitz | 2154 | #35
 WaimeaChess | SocialChess | Slow | 2154 | #10
 Vinsimo | SimpleChess | Puzzle Battle | 2153 | #10
 bkg | SocialChess | Slow | 2153 | #11
-REACTIONDIRECTE | SimpleChess | Rapid | 2152 | #17
+REACTIONDIRECTE | SimpleChess | Rapid | 2152 | #16
 Azhar01 | SocialChess | Blitz | 2151 | #36
 Hannes™ | SocialChess | Slow | 2151 | #12
 GM Sebas | SocialChess | Blitz | 2150 | #37
-Osyra | SimpleChess | Rapid | 2149 | #18
+Osyra | SimpleChess | Rapid | 2149 | #17
 GM Arafat yawar | SocialChess | Blitz | 2148 | #38
-Neutron_Stars | SimpleChess | Rapid | 2147 | #19
-NuevaMente | SimpleChess | Rapid | 2146 | #20
-lu89 | SimpleChess | Rapid | 2145 | #21
-peterpan30 | SocialChess | Fast | 2145 | #25
-chessfixy | SocialChess | Fast | 2144 | #27
+Neutron_Stars | SimpleChess | Rapid | 2147 | #18
+NuevaMente | SimpleChess | Rapid | 2146 | #19
+lu89 | SimpleChess | Rapid | 2145 | #20
+chessfixy | SocialChess | Fast | 2144 | #26
 JoeHGasvan | SocialChess | Rapid | 2144 | #2
-portugachess | SimpleChess | Rapid | 2138 | #22
+portugachess | SimpleChess | Rapid | 2138 | #21
 ch_marios | SocialChess | Blitz | 2138 | #40
 hennyh01 | SocialChess | Slow | 2138 | #13
-Condemor 🧛‍♂️ | SocialChess | Fast | 2137 | #28
-EngineKidi | SimpleChess | Rapid | 2135 | #23
-defaz | SocialChess | Blitz | 2135 | #41
+Condemor 🧛‍♂️ | SocialChess | Fast | 2137 | #27
+EngineKidi | SimpleChess | Rapid | 2135 | #22
+defaz | SocialChess | Blitz | 2135 | #42
 Lincoln102 | SocialChess | Blitz | 2132 | #43
-DizNu | SocialChess | Fast | 2132 | #31
+DizNu | SocialChess | Fast | 2132 | #30
 asdetrebol | SimpleChess | Bullet | 2131 | #21
 alfilvioleta | SimpleChess | Bullet | 2130 | #22
 cuchille | SimpleChess | Bullet | 2130 | #23
 Chaze | SimpleChess | Bullet | 2130 | #24
-Jose Gregorio Lopez | SocialChess | Fast | 2130 | #33
-panthere2000 | SimpleChess | Rapid | 2129 | #24
+Jose Gregorio Lopez | SocialChess | Fast | 2130 | #31
+panthere2000 | SimpleChess | Rapid | 2129 | #23
 darkshadows | SimpleChess | Bullet | 2126 | #25
 franky53 | SocialChess | Slow | 2126 | #14
 💗beautifulwoman | SocialChess | Blitz | 2125 | #44
+peterpan30 | SocialChess | Fast | 2124 | #34
 gertrudo | SimpleChess | Bullet | 2123 | #26
 Otto_Mat | SimpleChess | Puzzle Battle | 2123 | #11
-zardaxt | SocialChess | Fast | 2123 | #36
+zardaxt | SocialChess | Fast | 2123 | #35
 gabineto | SimpleChess | Bullet | 2122 | #27
 shubham-singh | SocialChess | Blitz | 2122 | #45
 Lawman | SocialChess | Slow | 2122 | #15
@@ -244,55 +243,55 @@ fisiado | SimpleChess | Bullet | 2121 | #28
 alfilgranate | SimpleChess | Bullet | 2120 | #29
 spassky64 | SimpleChess | Bullet | 2120 | #30
 blv | SocialChess | Slow | 2120 | #16
-Pafonso | SocialChess | Bullet | 2118 | #20
-Alakazambo | SocialChess | Fast | 2117 | #39
-DiagonaleAA | SimpleChess | Rapid | 2115 | #26
+Pafonso | SocialChess | Bullet | 2118 | #19
+Alakazambo | SocialChess | Fast | 2117 | #38
+DiagonaleAA | SimpleChess | Rapid | 2115 | #25
 tuco4000 | SimpleChess | Chess960 | 2114 | #6
 Ksenia Baumann | SocialChess | Blitz | 2114 | #47
-Installadurrrr | SocialChess | Bullet | 2114 | #21
+Installadurrrr | SocialChess | Bullet | 2114 | #20
 tepisomuch | SimpleChess | Bullet | 2112 | #31
-escatino | SimpleChess | Rapid | 2111 | #27
+escatino | SimpleChess | Rapid | 2111 | #26
 CoucouMesLoulou | SimpleChess | Puzzle Battle | 2110 | #12
-patachon | SimpleChess | Rapid | 2110 | #28
-debutmai26 | SimpleChess | Rapid | 2109 | #29
-Guest Magician | SocialChess | Fast | 2109 | #43
+patachon | SimpleChess | Rapid | 2110 | #27
+debutmai26 | SimpleChess | Rapid | 2109 | #28
+Guest Magician | SocialChess | Fast | 2109 | #42
 torturini | SimpleChess | Bullet | 2108 | #32
 Anatoly123 | SocialChess | Blitz | 2108 | #48
 gesphy | SocialChess | Blitz | 2106 | #49
 LeandroX | SocialChess | Slow | 2106 | #17
-Saceo | SimpleChess | Rapid | 2105 | #31
-bahamonde | SimpleChess | Rapid | 2105 | #32
+Saceo | SimpleChess | Rapid | 2105 | #30
+bahamonde | SimpleChess | Rapid | 2105 | #31
 GiNgerman101 | SocialChess | Blitz | 2105 | #50
 Taiger  | SocialChess | Fast | 2104 | #44
 sdeiana | SocialChess | Chess960 | 2104 | #2
-dalem57 | SimpleChess | Rapid | 2103 | #33
+dalem57 | SimpleChess | Rapid | 2103 | #32
 dreams 😘 | SocialChess | Fast | 2102 | #46
 Starman | SocialChess | Fast | 2101 | #47
-Argol31 | SimpleChess | Rapid | 2100 | #34
+Argol31 | SimpleChess | Rapid | 2100 | #33
 verano caluroso | SocialChess | Slow | 2100 | #18
 Yunai | SimpleChess | Bullet | 2098 | #36
-corrad2026 | SimpleChess | Rapid | 2098 | #35
+corrad2026 | SimpleChess | Rapid | 2098 | #34
 Halit 🥊🥊 | SocialChess | Fast | 2098 | #49
 tapadera | SimpleChess | Bullet | 2097 | #37
 KESATRIA86 | SocialChess | Fast | 2097 | #50
 newtal4 | SimpleChess | Bullet | 2096 | #38
 jirafini | SimpleChess | Bullet | 2096 | #39
 zumaiako 🏃‍♂️ | SocialChess | Fast | 2096 | #51
-Bilovrema | SimpleChess | Rapid | 2094 | #36
-CupDiaa13 | SimpleChess | Rapid | 2092 | #37
-Ingasoc1 | SimpleChess | Rapid | 2092 | #38
+Bilovrema | SimpleChess | Rapid | 2094 | #35
+CupDiaa13 | SimpleChess | Rapid | 2092 | #36
+Ingasoc1 | SimpleChess | Rapid | 2092 | #37
 kenkat10 | SocialChess | Slow | 2090 | #19
-JMiguel | SimpleChess | Rapid | 2089 | #39
+JMiguel | SimpleChess | Rapid | 2089 | #38
 Pig 🐷 | SocialChess | Bullet | 2088 | #27
-Acoutbm | SimpleChess | Rapid | 2087 | #40
-fiscannum | SimpleChess | Rapid | 2086 | #41
-r4ancesco3101 | SimpleChess | Rapid | 2086 | #42
-Ecasien | SimpleChess | Rapid | 2083 | #44
-DrunkenHeretic- | SocialChess | Bullet | 2083 | #29
-deaddog | SimpleChess | Rapid | 2082 | #45
-lmg2017 | SimpleChess | Rapid | 2082 | #46
-PawnPinner | SocialChess | Bullet | 2082 | #30
+Acoutbm | SimpleChess | Rapid | 2087 | #39
+fiscannum | SimpleChess | Rapid | 2086 | #40
+r4ancesco3101 | SimpleChess | Rapid | 2086 | #41
+Ecasien | SimpleChess | Rapid | 2083 | #43
+deaddog | SimpleChess | Rapid | 2082 | #44
+lmg2017 | SimpleChess | Rapid | 2082 | #45
+PawnPinner | SocialChess | Bullet | 2082 | #29
 StarScream | SimpleChess | Bullet | 2081 | #40
+grillo1966 | SimpleChess | Rapid | 2081 | #46
 SAID29 | SimpleChess | Rapid | 2080 | #47
 Royeres | SimpleChess | Rapid | 2080 | #48
 da beast | SocialChess | Slow | 2080 | #20
@@ -302,3 +301,4 @@ gabinet | SimpleChess | Bullet | 2078 | #42
 Denis 555 | SocialChess | Rapid | 2078 | #4
 phucnguyen1915 | SimpleChess | Bullet | 2077 | #43
 Etejeiv | SimpleChess | Rapid | 2077 | #50
+Candle2206 | SocialChess | Slow | 2077 | #21

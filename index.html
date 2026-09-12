@@ -487,9 +487,10 @@ const SocialChess = {
    Accès en LECTURE SEULE, via une session ANONYME (aucun identifiant,
    aucune donnée personnelle, aucune écriture) — c'est le même accès
    que l'écran « Classements » de l'application.
-   Règle de classement officielle de l'app :
-     scoreRanking = Elo(level)×10⁷ + victoires×100 + points de puzzles
-   (l'Elo est donc prépondérant, puis les victoires, puis les puzzles).
+   Classement = exactement celui de l'app : les joueurs CLASSÉS sont ceux qui
+   portent un rang officiel (champ « rankingGlobal » > 0), listés par ce rang.
+   Les comptes sans rang (parties d'essai, comptes neufs, profils trafiqués)
+   n'apparaissent donc jamais — comme dans l'application.
    Si l'éditeur ferme l'accès, mettre CHECKMATE_ENABLED:false dans config.js.
    ========================================================= */
 const Checkmate = (()=>{
@@ -497,9 +498,9 @@ const Checkmate = (()=>{
   const PROJ="checkmate-17950";
   const FS=`https://firestore.googleapis.com/v1/projects/${PROJ}/databases/(default)/documents`;
   const TOK_KEY="chesslive-cm-token";
-  const LIMIT = Number(CFG.CHECKMATE_LIMIT||500);            // fenêtre de classement chargée
-  const MAX_ELO = 5000, MAX_WINS = 200000;                   // garde-fous : profils incohérents
-  let tok=null, tokExp=0, lastSkipped=0;
+  const LIMIT = Number(CFG.CHECKMATE_LIMIT||1000);           // fenêtre du classement officiel chargée
+  const RANKED = {fieldFilter:{field:{fieldPath:"rankingGlobal"},op:"GREATER_THAN",value:{integerValue:"0"}}};
+  let tok=null, tokExp=0;
 
   const dec = v => {
     if(!v) return null;
@@ -551,37 +552,27 @@ const Checkmate = (()=>{
     try{ return Number(j[0].result.aggregateFields.n.integerValue); }catch(e){ return null; }
   }
   const lvl = (op,n) => ({fieldFilter:{field:{fieldPath:"level"},op,value:{integerValue:String(n)}}});
-  /* score de classement de l'app : Elo×10⁷ + victoires×100 + points de puzzles */
-  const score = f => (Number(f.level)||0)*1e7+(Number(f.stats?.gamesWins)||0)*100+(Number(f.puzzles?.puzzlesPoints)||0);
-  const plausible = f => {
-    const st=f.stats||{};
-    const l=Number(f.level)||0, w=Number(st.gamesWins)||0, all=Number(st.gamesAll)||0;
-    return l<=MAX_ELO && w<=MAX_WINS && (all===0 || w<=all*1.2);
-  };
-  const toRow = (f,i)=>{
+  const toRow = (f)=>{
     const st=f.stats||{}, pz=f.puzzles||{};
     return {
       id:f._id, name:f.username||f._id, country:f.country||"",
       elo:Number(f.level)||0, eloBest:null, puzzles:Number(pz.puzzlesPoints)||0,
       wins:Number(st.gamesWins)||0, losses:Number(st.gamesLosses)||0, draws:Number(st.gamesDraws)||0,
       games:Number(st.gamesAll)||0,
-      rank:i+1, rankGlobal:Number(f.rankingGlobal)||0, rankCountry:Number(f.rankingCountry)||0,
+      rank:Number(f.rankingGlobal)||0, rankGlobal:Number(f.rankingGlobal)||0,
+      rankCountry:Number(f.rankingCountry)||0,
       title:"", raw:f
     };
   };
 
   return {
-    /* classement = tri par Elo décroissant, puis victoires, puis puzzles
-       (exactement l'ordre affiché dans l'app : Elo, victoires, points de puzzles) */
+    /* classement OFFICIEL de l'app : joueurs classés (rang officiel) dans l'ordre de l'app */
     async leaderboard(){
-      const docs = await runQuery({from:[{collectionId:"users"}],
-        orderBy:[{field:{fieldPath:"level"},direction:"DESCENDING"}], limit:LIMIT});
-      const good = docs.filter(plausible);
-      lastSkipped = docs.length - good.length;
-      good.sort((a,b)=> score(b)-score(a));
-      const rows = good.map(toRow);
-      return {rows, skipped:lastSkipped,
-        source:`Checkmate (Splend Apps) · base publique de l'app, lecture seule · top ${rows.length}`};
+      const docs = await runQuery({from:[{collectionId:"users"}], where:RANKED,
+        orderBy:[{field:{fieldPath:"rankingGlobal"},direction:"ASCENDING"}], limit:LIMIT});
+      const rows = docs.map(toRow).filter(r=>r.rank>0);
+      return {rows,
+        source:`Checkmate (Splend Apps) · classement officiel de l'app · ${rows.length} premiers · lecture seule`};
     },
     /* par identifiant de document (fiable : les pseudos ne sont pas uniques) */
     async byId(docId){
@@ -618,8 +609,8 @@ const Checkmate = (()=>{
     },
     /* totaux : agrégations (lentes, mises en cache 24 h côté appelant) */
     async totals(){
-      const [all,over2000,over2500] = await Promise.all([count(null), count(lvl("GREATER_THAN",2000)), count(lvl("GREATER_THAN",2500))]);
-      return {all, over2000, over2500};
+      const [all, ranked] = await Promise.all([count(null), count(RANKED)]);
+      return {all, ranked};
     }
   };
 })();
@@ -654,7 +645,6 @@ async function apiModeHistory(game, user, mode){
    ÉTAT & UI
    ========================================================= */
 const params = new URLSearchParams(location.search);
-let lastSkipped = 0;   // Checkmate : profils au score incohérent écartés du classement
 let remoteRow = null, remoteFor = "";   // Checkmate : joueur trouvé directement dans la base (hors top chargé)
 let state = {
   game: GAMES[params.get("game")] ? params.get("game") : (GAMES[CFG.DEFAULT_GAME]?CFG.DEFAULT_GAME:"simplechess"),
@@ -712,7 +702,6 @@ async function load(force=false){
     let res = getCached(key);
     if(!res || force){ res = await p.leaderboard(state.mode); setCached(key,res); }
     lastPlayers = res.rows;
-    lastSkipped = res.skipped || 0;
     snapSave(state.game, state.mode, res.rows);   // A1 : snapshot 1/30 min
     $("sourceInfo").textContent="Source : "+res.source;
     populateCountries();
@@ -758,10 +747,10 @@ function render(){
     tr.onclick=()=>showPlayer(p);
     tb.appendChild(tr);
   });
-  $("count").textContent=`${rows.length} joueur(s) · top ${lastPlayers.length} mondial`
-    + (lastSkipped?` · ${lastSkipped} profil(s) incohérent(s) écarté(s)`:"")
-    + (state.game==="checkmate"?" · tri : Elo, puis victoires, puis puzzles (règle de l'app)":"")
-    + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors top chargé)" : "");
+  $("count").textContent=`${rows.length} joueur(s) · ${state.game==="checkmate"?"classement officiel de l'app":"top "+lastPlayers.length+" mondial"}`
+    + (state.game==="checkmate"?` · rangs n°${lastPlayers[0]?lastPlayers[0].rank:"?"} à n°${lastPlayers[lastPlayers.length-1]?lastPlayers[lastPlayers.length-1].rank:"?"} du jeu`:"")
+    + (state.game==="checkmate"&&cc?" · filtre pays appliqué à cette fenêtre":"")
+    + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors fenêtre)" : "");
 }
 
 /* ---------- filtre pays ---------- */
@@ -1078,10 +1067,10 @@ async function providerTotals(){
     if(cache[k24] && Date.now()-cache[k24].t<24*3600e3) return cache[k24].v;
     try{
       const t=await Checkmate.totals();
-      if(t.all==null) throw new Error("indisponible");
+      if(t.ranked==null) throw new Error("indisponible");
       const nf=n=>Number(n||0).toLocaleString("fr-FR");
-      res={byMode:{rank:t.all},
-           note:`Checkmate ne publie pas de « joueurs classés » distinct : ${nf(t.all)} comptes au total, dont ${nf(t.over2000)} au-dessus de 2 000 Elo et ${nf(t.over2500)} au-dessus de 2 500 (mesure ChessLive).`};
+      res={byMode:{rank:t.ranked},
+           note:`${nf(t.ranked)} joueurs classés (ceux qui portent un rang officiel dans l'app) sur ${nf(t.all)} comptes au total. ChessLive affiche les ${Number(CFG.CHECKMATE_LIMIT||1000).toLocaleString("fr-FR")} premiers.`};
       cache[k24]={t:Date.now(), v:res};
     }catch(e){
       res={byMode:{}, note:"Totaux Checkmate momentanément indisponibles (accès classement fermé ?)"};
@@ -1123,7 +1112,7 @@ async function openStats(){
   if(totals && totals.byMode && Object.keys(totals.byMode).length){
     curGame().modes.forEach(([id,label])=>{
       const n=totals.byMode[id];
-      totHtml+=`<div class="box">${M_ICONS[id]||"♟"} <b class="${n?'green':''}">${n?n.toLocaleString("fr-FR"):"—"}</b>${esc(label||id)}${state.game==="checkmate"?" · comptes":" · classés"}</div>`;
+      totHtml+=`<div class="box">${M_ICONS[id]||"♟"} <b class="${n?'green':''}">${n?n.toLocaleString("fr-FR"):"—"}</b>${esc(label||id)}${state.game==="checkmate"?" · classés":" · classés"}</div>`;
     });
   }
   if(totals && totals.note) totHtml+=`<div class="box" style="max-width:430px">ℹ️ ${esc(totals.note)}</div>`;
@@ -1255,7 +1244,7 @@ function probeRemote(){
       const r=(d.ratings||[])[0]||{};
       remoteRow={ id:d.id, name:d.name, country:d.country, elo:r.elo, eloBest:null,
                   puzzles:r.puzzles||0, wins:r.wins||0, losses:r.losses||0, draws:r.draws||0,
-                  games:r.games||0, rank:null, rankGlobal:r.rank||0, rankCountry:r.rankCountry||0,
+                  games:r.games||0, rank:r.rank||null, rankGlobal:r.rank||0, rankCountry:r.rankCountry||0,
                   title:"", remote:true };
     }catch(e){ remoteRow=null; }
     if($("search").value.trim()===name) render();

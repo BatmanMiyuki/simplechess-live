@@ -24,10 +24,13 @@ window.SC_CONFIG = {
   MY_USERNAME_SC: "",
 
   /* Jeu Checkmate (Splend Apps) :
+     CHECKMATE_LIMIT = nombre de premiers du classement officiel chargé
+     (1000 par défaut ; augmenter = plus de joueurs par pays mais plus lourd). 
      le classement est lu en LECTURE SEULE dans la base publique de l'app
      (session anonyme, aucune donnée personnelle). Mettre false pour le
      retirer complètement de l'interface si l'éditeur ferme l'accès. */
   CHECKMATE_ENABLED: true,
+  CHECKMATE_LIMIT: 1000,
 
   /* Rafraîchissement automatique du classement (secondes) */
   AUTO_REFRESH_SEC: 60,
