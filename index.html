@@ -655,6 +655,7 @@ async function apiModeHistory(game, user, mode){
    ========================================================= */
 const params = new URLSearchParams(location.search);
 let lastSkipped = 0;   // Checkmate : profils au score incohérent écartés du classement
+let remoteRow = null, remoteFor = "";   // Checkmate : joueur trouvé directement dans la base (hors top chargé)
 let state = {
   game: GAMES[params.get("game")] ? params.get("game") : (GAMES[CFG.DEFAULT_GAME]?CFG.DEFAULT_GAME:"simplechess"),
   mode: null,
@@ -727,7 +728,8 @@ const hasFlagEmoji = s => /[\u{1F1E6}-\u{1F1FF}]/u.test(s||"");
 function render(){
   const needle=$("search").value.trim().toLowerCase();
   const cc=$("countryFilter").value;
-  const rows=applyMoversSort(lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
+  let rows=applyMoversSort(lastPlayers.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
+  if(!rows.length && remoteRow && needle && remoteRow.name.toLowerCase().includes(needle)) rows=[remoteRow];
   const tb=$("tbody"); tb.innerHTML="";
   if(!rows.length){ tb.innerHTML=`<tr><td colspan="9" class="msg">Aucun joueur ne correspond aux filtres.</td></tr>`; }
   if(moversOn){
@@ -740,11 +742,11 @@ function render(){
   } else $("moversInfo").textContent="";
   rows.forEach(p=>{
     const tr=document.createElement("tr");
-    tr.className=(p.rank<=3?"top"+p.rank:"")+" clickable";
+    tr.className=(p.rank&&p.rank<=3?"top"+p.rank:"")+" clickable";
     const flag = hasFlagEmoji(p.name) ? "" : flagEmoji(p.country);
     const mvCell = moverCell(moverState(state.game,state.mode,p));
     tr.innerHTML=`
-      <td class="rank">${p.rank}${mvCell?"<br>":""}${mvCell}</td>
+      <td class="rank">${p.rank||"—"}${mvCell?"<br>":""}${mvCell}</td>
       <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}</td>
       <td><span class="sub">${esc(p.country||"—")}</span></td>
       <td style="text-align:right" class="elo">${p.elo||"—"}</td>
@@ -758,7 +760,8 @@ function render(){
   });
   $("count").textContent=`${rows.length} joueur(s) · top ${lastPlayers.length} mondial`
     + (lastSkipped?` · ${lastSkipped} profil(s) incohérent(s) écarté(s)`:"")
-    + (state.game==="checkmate"?" · tri : Elo, puis victoires, puis puzzles (règle de l'app)":"");
+    + (state.game==="checkmate"?" · tri : Elo, puis victoires, puis puzzles (règle de l'app)":"")
+    + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors top chargé)" : "");
 }
 
 /* ---------- filtre pays ---------- */
@@ -1227,7 +1230,28 @@ $("btnCountries").onclick=openCountries;
 $("btnStats").onclick=openStats;
 $("btnCSV").onclick=()=>exportRows("csv");
 $("btnJSON").onclick=()=>exportRows("json");
-$("search").addEventListener("input", render);
+$("search").addEventListener("input", ()=>{ render(); probeRemote(); });
+let probeTimer=null;
+/* Checkmate : si le pseudo n'est pas dans la fenêtre chargée, on interroge la base */
+function probeRemote(){
+  if(state.game!=="checkmate" || !PROVIDERS.checkmate) return;
+  const name=$("search").value.trim();
+  clearTimeout(probeTimer);
+  if(name.length<3){ remoteRow=null; remoteFor=""; return; }
+  if(remoteFor===name) return;
+  probeTimer=setTimeout(async ()=>{
+    remoteFor=name;
+    try{
+      const d=await Checkmate.player(name);
+      const r=(d.ratings||[])[0]||{};
+      remoteRow={ id:d.id, name:d.name, country:d.country, elo:r.elo, eloBest:null,
+                  puzzles:r.puzzles||0, wins:r.wins||0, losses:r.losses||0, draws:r.draws||0,
+                  games:r.games||0, rank:null, rankGlobal:r.rank||0, rankCountry:r.rankCountry||0,
+                  title:"", remote:true };
+    }catch(e){ remoteRow=null; }
+    if($("search").value.trim()===name) render();
+  }, 550);
+}
 $("countryFilter").addEventListener("change", render);
 $("accountBtn").onclick=showAccount;
 $("auto").onchange=e=>{
