@@ -302,10 +302,11 @@ const GAMES = {
   },
   chesshotel: {
     name:"Chess Hotel", icon:"🏨", tag:"CH",       // fond orange, dame blanche
-    /* Classement un peu différent des autres jeux : Chess Hotel ne publie pas
-       d'Elo mondial mais des LIGUES par saison, une table par cadence, classée
-       aux POINTS (et l'élite Diamant/Maître classée à l'Elo). */
-    modes:[["blitz","Blitz"],["rapid","Rapid"],["bullet","Bullet"],["chess960","Chess960"],["elite","Élite"]],
+    /* Classement différent des autres jeux : Chess Hotel ne publie pas de
+       classement mondial mais des LIGUES par mode (Bronze → Maître, ~100 joueurs
+       par division), classées aux POINTS de la saison. Le filtre « ligue » permet
+       d'afficher le tableau d'un niveau précis, comme dans l'appli. */
+    modes:[["blitz","Blitz"],["rapid","Rapid"],["bullet","Bullet"],["chess960","Chess960"]],
     rateKey:"elo",
     col3:"Ligue", col3key:"tier",   // la 3e colonne montre le niveau (Placement → Maître)
     col5:"Points", col5key:"points", // 5e colonne = points de la saison
@@ -719,122 +720,139 @@ const Checkmate = (()=>{
 
 /* =========================================================
    PROVIDER 4 — CHESS HOTEL (Foggy Media AB) — LES LIGUES
-   Source : API publique du site (www.chesshotel.com/api/v1), lecture seule,
-   CORS ouvert (testé depuis cette page). Le site ne publie AUCUN Elo mondial :
-   chaque saison, les joueurs jouent des « parties de ligue » et marquent des
-   POINTS dans la table de leur division — c'est le classement « un peu
-   différent mais il y en a un ».
-     · /division-scores/1 → ligue Chess960      · /division-scores/3 → ligue Blitz
-     · /division-scores/2 → ligue Bullet        · /division-scores/4 → ligue Rapid
-     · /division-scores/5 et /6 → élite Diamant + Maître
-   Ordre officiel du site = points décroissants (l'élite : Elo décroissant).
+   Le jeu ne publie PAS de classement mondial : il organise des LIGUES par mode.
+   Chaque joueur est versé dans une DIVISION (~100 joueurs), elle-même composée
+   de plusieurs niveaux (Bronze, Argent, Or, Platine, Diamant, Maître…), et il
+   marque des POINTS dans le tableau de sa division — c'est le classement
+   « un peu différent » du jeu (l'appli affiche exactement ces tableaux).
+   Source : API publique du site (www.chesshotel.com/api/v1/division-scores/{id}),
+   CORS ouvert, lecture seule, sans clé ni compte.
+   ChessLive récupère TOUTES les divisions connues et reconstitue, pour chaque
+   mode, le tableau officiel par points — avec un filtre par ligue.
+   Les divisions sont numérotées par l'éditeur (1→8 pour les ligues pratiques,
+   2486+ pour les ligues du moment) : config.js peut en ajouter, et le provider
+   sonde automatiquement les numéros juste au-dessus du plus grand connu.
    Si l'éditeur ferme l'accès, mettre CHESSHOTEL_ENABLED:false dans config.js.
    ========================================================= */
 const ChessHotel = (()=>{
   const API = "https://www.chesshotel.com/api/v1";
-  const DIV = {chess960:1, bullet:2, blitz:3, rapid:4};   // cadence -> division
-  const ELITE = [5, 6];                                   // Diamant, Maître
+  /* modes de ligue du jeu (mêmes 4 que dans l'appli : Bullet, Blitz, Rapid, Chess960) */
+  const MODES = {chess960:2, bullet:3, blitz:4, rapid:5};
   const TIERS = {placement:"Placement", bronze:"Bronze", silver:"Argent", gold:"Or",
                  platinum:"Platine", diamond:"Diamant", master:"Maître"};
+  const TIER_ORDER = ["master","diamond","platinum","gold","silver","bronze","placement"];
+  /* divisions connues : 2486+ sont créées par l'éditeur au fil du temps */
+  const DIVS = [...new Set([1,2,3,4,5,6,8, ...(CFG.CHESSHOTEL_DIVISIONS||[]),
+                 ...Array.from({length:66},(_,i)=>2486+i)])].filter(n=>n>0).sort((a,b)=>a-b);
+  const PROBE = 24;                 // numéros sondés au-dessus du plus grand connu
+  const CACHE_MS = 10*60e3;         // le classement des ligues bouge lentement
+
+  const tierName = x => TIERS[x.leagueName] || x.leagueName || "";
+  function toRow(x){
+    return {id:x.userId, name:String(x.username||"").trim(), country:"",
+      elo:Number(x.elo)||0, eloBest:null, points:Number(x.points)||0,
+      tier:tierName(x), leagueName:x.leagueName||"", season:Number(x.season)||0,
+      wins:Number(x.wins)||0, losses:Number(x.losses)||0, draws:Number(x.draws)||0,
+      games:Number(x.gameNr)||0, modeId:Number(x.modeId)||0,
+      divisionId:Number(x.divisionId)||0, bonusPool:Number(x.bonusPool)||0, raw:x};
+  }
+  const byPoints = (a,b)=>(b.points-a.points)||(b.elo-a.elo)||a.name.localeCompare(b.name,"fr");
 
   async function division(id){
     const r = await fetch(`${API}/division-scores/${id}`, {headers:{"Accept":"application/json"}});
     if(!r.ok) throw new Error(`HTTP ${r.status} (Chess Hotel)`);
     const j = await r.json();
-    if(!j || !Array.isArray(j.divisionScores)) throw new Error("Réponse inattendue de Chess Hotel");
-    return j.divisionScores.filter(x=>x && x.username);
+    return (j && Array.isArray(j.divisionScores)) ? j.divisionScores : [];
   }
-  const tierName = x => TIERS[x.leagueName] || x.leagueName || "";
-  const toRow = (x,rank)=>({
-    id:x.userId, name:String(x.username).trim(), country:"",   // le site laisse parfois des espaces
-    elo:Number(x.elo)||0, eloBest:null, points:Number(x.points)||0,
-    tier:tierName(x), leagueName:x.leagueName||"", season:Number(x.season)||0,
-    wins:Number(x.wins)||0, losses:Number(x.losses)||0, draws:Number(x.draws)||0,
-    games:Number(x.gameNr)||0, rank, modeId:Number(x.modeId)||0,
-    bonusPool:Number(x.bonusPool)||0, raw:x
-  });
-  /* tris appliqués aux DONNÉES BRUTES de l'API (champs points/elo/username) */
-  const rawByPoints=(a,b)=>(Number(b.points)||0)-(Number(a.points)||0)
-                        || (Number(b.elo)||0)-(Number(a.elo)||0)
-                        || String(a.username||"").localeCompare(String(b.username||""),"fr");
-  const rawByElo   =(a,b)=>(Number(b.elo)||0)-(Number(a.elo)||0)
-                        || (Number(b.points)||0)-(Number(a.points)||0)
-                        || String(a.username||"").localeCompare(String(b.username||""),"fr");
-  const seasonOf = rows => (rows.find(r=>r.season)||{}).season || "?";
+
+  /* --- toutes les divisions, une seule fois (puis 10 min de cache) -------- */
+  let all=null, at=0, pending=null, lastErr="";
+  async function everything(force){
+    if(all && !force && Date.now()-at < CACHE_MS) return all;
+    if(pending) return pending;
+    pending = (async()=>{
+      const maxId = DIVS[DIVS.length-1];
+      const probe = Array.from({length:PROBE},(_,i)=>maxId+1+i);
+      const ids = [...DIVS, ...probe];
+      const lists = await Promise.all(ids.map(id=>division(id).catch(()=>null)));
+      const fresh = new Set(DIVS);
+      probe.forEach((id,k)=>{ if(lists[DIVS.length+k] && lists[DIVS.length+k].length) fresh.add(id); });
+      const rows = [];
+      lists.forEach(l=>{ if(l) l.forEach(x=>{ if(x && x.username) rows.push(toRow(x)); }); });
+      if(!rows.length) throw new Error("Aucune donnée de ligue Chess Hotel (l'éditeur a-t-il fermé l'accès ?)");
+      const modes = {};                                   // modeId -> lignes classées par points
+      rows.forEach(p=>{ (modes[p.modeId]=modes[p.modeId]||[]).push(p); });
+      Object.values(modes).forEach(l=>l.sort(byPoints).forEach((p,i)=>p.rank=i+1));
+      const season = (rows.find(r=>r.season)||{}).season || "?";
+      all = {rows, modes, season, divisions:[...fresh].sort((a,b)=>a-b)};
+      if(pending===null) return all;
+      at = Date.now(); lastErr=""; pending=null;
+      return all;
+    })().catch(e=>{ pending=null; lastErr=e.message||String(e); throw e; });
+    return pending;
+  }
 
   return {
-    /* classement officiel des ligues (ordre du site : points, ou Elo pour l'élite) */
+    /* tableau officiel d'un mode : tous les joueurs de toutes les divisions,
+       classés aux points (comme l'appli, qui affiche la table de la division) */
     async leaderboard(mode){
-      if(mode==="elite"){
-        const lists = await Promise.all(ELITE.map(division));
-        const raw = [].concat(...lists);
-        if(!raw.length) throw new Error("Aucun joueur dans les ligues élite Chess Hotel");
-        const rows = raw.sort(rawByElo).map((x,i)=>toRow(x,i+1));
-        const tiers = [...new Set(rows.map(r=>r.tier))].join(" + ");
-        return {rows, total:rows.length,
-          source:`Chess Hotel (Foggy Media) · ligues élite ${tiers} · saison ${seasonOf(rows)} `
-               + `· classement Elo · lecture seule`};
-      }
-      const id = DIV[mode];
-      if(!id) throw new Error("Cadence Chess Hotel inconnue");
-      const raw = (await division(id)).sort(rawByPoints);
-      if(!raw.length) throw new Error("Ligue Chess Hotel vide pour cette cadence");
-      const rows = raw.map((x,i)=>toRow(x,i+1));
-      const promus = rows.filter(r=>r.leagueName!=="placement").length;
+      const modeId = MODES[mode];
+      if(!modeId) throw new Error("Cadence Chess Hotel inconnue");
+      const d = await everything(false);
+      const rows = d.modes[modeId] || [];
+      if(!rows.length) throw new Error("Aucun joueur classé pour cette cadence");
       const label = (GAMES.chesshotel.modes.find(m=>m[0]===mode)||[,""])[1];
-      return {rows, total:rows.length,
-        source:`Chess Hotel (Foggy Media) · ligue ${label} · saison ${seasonOf(rows)} · classement officiel `
-             + `aux points${promus?` · ${promus} promu(s) au niveau supérieur`:""} · lecture seule`};
+      const leagues = [...new Set(rows.map(r=>r.tier))];
+      return {rows, total:rows.length, season:d.season, leagues,
+        source:`Chess Hotel (Foggy Media) · ligue ${label} · saison ${d.season} · tableaux officiels `
+             + `des ligues (${leagues.length} niveaux, ${d.divisions.length} divisions) · classement aux points `
+             + `· lecture seule`};
     },
-    /* le site ne publie pas d'annuaire : on fouille les tables de ligue
-       (on accepte le pseudo exact OU l'identifiant numérique du joueur) */
+    /* recherche dans les tableaux de ligue (pseudo exact ou identifiant) */
     async player(idOrName){
       const raw0 = String(idOrName||"").trim();
       if(!raw0) throw new Error("Pseudo Chess Hotel vide");
       const wantedId = /^\d+$/.test(raw0) ? Number(raw0) : null;
       const target = raw0.toLowerCase();
-      const hit = x => wantedId!=null ? Number(x.userId)===wantedId
-                                      : String(x.username||"").trim().toLowerCase()===target;
-      const ids = [...Object.values(DIV), ...ELITE, 8];
-      const lists = await Promise.all(ids.map(i=>division(i).catch(()=>[])));
-      const found = [];
-      lists.forEach((list,idx)=>{
-        const div = ids[idx];
-        [...list].sort(ELITE.includes(div)?rawByElo:rawByPoints)
-          .forEach((x,i)=>{ if(hit(x)) found.push([div,x,i+1]); });
-      });
-      if(!found.length) throw new Error("Introuvable dans les ligues de la saison en cours (le site ne publie pas d'annuaire des joueurs)");
-      const ratings = found.map(([div,x,pos])=>({
-        mode:"div"+div, label:`${tierName(x)||"Ligue"} · division ${div}` + (pos?` · #${pos}`:""),
-        elo:Number(x.elo)||0, eloBest:null, points:Number(x.points)||0,
-        tier:tierName(x), games:Number(x.gameNr)||0,
-        wins:Number(x.wins)||0, losses:Number(x.losses)||0, draws:Number(x.draws)||0,
-      })).sort((a,b)=>b.elo-a.elo);
-      return {id:found[0][1].userId, name:String(found[0][1].username), country:"", avatar:null,
-        maxElo:Math.max(...ratings.map(r=>r.elo)), extra:`Ligues Chess Hotel — saison ${found[0][1].season}`,
+      const d = await everything(false);
+      const found = d.rows.filter(x=> wantedId!=null ? x.id===wantedId : x.name.toLowerCase()===target);
+      if(!found.length) throw new Error("Introuvable dans les tableaux de ligue (le site ne publie pas d'annuaire des joueurs)");
+      const ratings = found.map(x=>{
+        /* rang DANS SA LIGUE (l'équivalent du badge « RANK » de l'appli) */
+        const same = (d.modes[x.modeId]||[]).filter(r=>r.leagueName===x.leagueName);
+        const pos = same.findIndex(r=>r.id===x.id)+1;
+        const modeLabel = (GAMES.chesshotel.modes.find(m=>m[0]===Object.keys(MODES).find(k=>MODES[k]===x.modeId))||[,"Mode"])[1];
+        return {mode:"m"+x.modeId+"d"+x.divisionId,
+          label:`${modeLabel} · ligue ${x.tier||"?"} · division ${x.divisionId}` + (pos?` · #${pos}`:""),
+          elo:x.elo, eloBest:null, points:x.points, tier:x.tier,
+          games:x.games, wins:x.wins, losses:x.losses, draws:x.draws};
+      }).sort((a,b)=>b.points-a.points);
+      return {id:found[0].id, name:found[0].name, country:"", avatar:null,
+        maxElo:Math.max(...ratings.map(r=>r.elo)), extra:`Ligues Chess Hotel — saison ${found[0].season}`,
         ratings};
     },
-    /* totaux de la saison : joueurs ayant un score de ligue, par cadence */
+    /* effectifs réels : joueurs classés par cadence (toutes divisions) */
     async totals(){
-      const ids = [...new Set([...Object.values(DIV), ...ELITE, 8])];
-      const lists = await Promise.all(ids.map(i=>division(i).catch(()=>[])));
-      const key = {1:"chess960", 2:"bullet", 3:"blitz", 4:"rapid"};
-      const sets = {blitz:new Set(), rapid:new Set(), bullet:new Set(), chess960:new Set(), elite:new Set()};
-      let all = new Set(), season = "";
-      lists.forEach((list,idx)=>{
-        const div = ids[idx];
-        list.forEach(x=>{
-          all.add(x.userId);
-          if(!season && x.season) season = x.season;
-          if(key[div]) sets[key[div]].add(x.userId);
-          if(ELITE.includes(div)) sets.elite.add(x.userId);
-        });
+      const d = await everything(false);
+      const byMode = {};
+      GAMES.chesshotel.modes.forEach(([id])=>{
+        const n = (d.modes[MODES[id]]||[]).length;
+        if(n) byMode[id] = n;
       });
-      const byMode = {}; Object.keys(sets).forEach(k=>byMode[k]=sets[k].size);
       return {byMode,
-        note:`Chess Hotel ne publie pas d'Elo mondial : ${all.size.toLocaleString("fr-FR")} joueurs ont un score `
-           + `dans les ligues de la saison ${season||"?"} (les 5 premiers niveaux sont publics, le niveau Placement `
-           + `est le plus peuplé). Chaque cadence a sa propre table, classée aux points.`};
+        note:`Chess Hotel organise des ligues : ${d.rows.length.toLocaleString("fr-FR")} joueurs classés dans `
+           + `${d.divisions.length} divisions (saison ${d.season}), répartis en ${Object.keys(TIERS).length} niveaux `
+           + `(Placement → Maître). Chaque cadence a son propre tableau, classé aux POINTS de la saison : `
+           + `un joueur peut être Maître en Blitz et Argent en Bullet.`};
+    },
+    /* utilitaires pour le filtre « ligue » de l'interface */
+    TIERS, TIER_ORDER,
+    async leaguesByTier(mode){
+      const d = await everything(false);
+      const rows = d.modes[MODES[mode]] || [];
+      const out = {};
+      rows.forEach(r=>{ out[r.leagueName] = (out[r.leagueName]||0)+1; });
+      return out;
     }
   };
 })();
@@ -927,10 +945,12 @@ function buildGameSwitch(){
 function buildTabs(){
   if($("th5")) $("th5").textContent = curGame().col5 || "Elo max";
   if($("th3")) $("th3").textContent = curGame().col3 || "Pays";
-  /* Chess Hotel ne publie pas le pays des joueurs : le filtre pays n'a pas de sens */
-  const noCC = state.game==="chesshotel";
-  $("countryFilter").style.display = noCC ? "none" : "";
-  if(noCC) $("countryFilter").value = "";
+  if($("btnCountries")) $("btnCountries").innerHTML = state.game==="chesshotel" ? "🏅 Ligues &amp; divisions" : "🌍 Joueurs par pays";
+  /* Chess Hotel ne publie pas le pays des joueurs : le sélecteur sert de filtre de LIGUE */
+  const ch = state.game==="chesshotel";
+  $("countryFilter").title = ch ? "Afficher le tableau d'une ligue (Bronze → Maître)" : "Filtrer par pays";
+  if(ch && !$("countryFilter").dataset.mode){ $("countryFilter").dataset.mode = "league"; $("countryFilter").value = CFG.CHESSHOTEL_LEAGUE||""; }
+  if(!ch && $("countryFilter").dataset.mode==="league"){ delete $("countryFilter").dataset.mode; $("countryFilter").value = ""; }
   /* onglet national : libellé selon le pays configuré */
   if(state.game==="checkmate"){
     const cc=CFG.CHECKMATE_COUNTRY||"FR";
@@ -958,6 +978,7 @@ async function load(force=false){
     let res = getCached(key);
     if(!res || force){ res = await p.leaderboard(state.mode); setCached(key,res); }
     lastPlayers = res.rows;
+    if(state.game==="chesshotel"){ state.lastSeason = res.season || ""; }
     if(state.game==="checkmate" && state.mode==="france" && res.rows.length)
       countryTopCache[CFG.CHECKMATE_COUNTRY||"FR"] = res.rows;
     snapSave(state.game, state.mode, res.rows);   // A1 : snapshot 1/30 min
@@ -998,7 +1019,20 @@ function render(){
     else if(state.mode==="france" && (!cc || cc===tabCC)) base=lastPlayers; // l'onglet EST ce classement
     else { base=[]; ensureCountryTop(natCC); }                        // chargement à la demande
   }
-  let rows=applyMoversSort(base.filter(p => (!needle||p.name.toLowerCase().includes(needle)) && (!cc||p.country===cc)));
+  const chMode = state.game==="chesshotel";
+  const chKind = chMode ? (cc||"").split(":")[0] : "", chVal = chMode ? (cc||"").split(":")[1] : "";
+  const chMatch = p => !cc || (chKind==="lg" ? p.leagueName===chVal : String(p.divisionId)===chVal);
+  if(chMode){
+    /* Comme l'appli : le rang est celui du TABLEAU affiché (ligue ou division
+       sélectionnée) — c'est le badge « RANK » du jeu. */
+    const pool = base.filter(chMatch);
+    pool.forEach((p,i)=>{ p.rank = i+1; });
+  }
+  let rows=applyMoversSort(base.filter(p=>{
+    if(needle && !p.name.toLowerCase().includes(needle)) return false;
+    if(chMode) return chMatch(p);                      // cc = « lg:… » ou « div:… » pour ce jeu
+    return !cc || p.country===cc;
+  }));
   if(!rows.length && remoteRow && needle && remoteRow.name.toLowerCase().includes(needle)) rows=[remoteRow];
   const tb=$("tbody"); tb.innerHTML="";
   if(!rows.length){
@@ -1040,9 +1074,13 @@ function render(){
   } else {
     const scope = national ? ("classement national "+natCC+" · rangs officiels")
                 : (state.game==="checkmate" ? "classement officiel de l'app"
-                : (state.game==="chesshotel" ? (state.mode==="elite" ?"ligue officielle Chess Hotel · élite classée à l\'Elo"
-                                                              :"ligue officielle Chess Hotel · classement aux points de la saison")
-                                             : "top "+lastPlayers.length+" mondial"));
+                : (state.game==="chesshotel"
+                    ? "tableau officiel Chess Hotel"
+                      + (chKind==="lg" ? " · ligue "+(ChessHotel.TIERS[chVal]||chVal)
+                         : chKind==="div" ? " · division "+chVal+" (tableau de l'appli)"
+                         : " · toutes les ligues")
+                      + (state.lastSeason ? " · saison "+state.lastSeason : "")
+                    : "top "+lastPlayers.length+" mondial"));
     const detail = (national || state.game==="chesshotel") ? ""
       : (base.length ? ` · rangs n°${base[0].rank||"?"} à n°${base[base.length-1].rank||"?"} du jeu` : "");
     el.textContent = `${rows.length} joueur(s) · ${scope}${detail}`
@@ -1053,6 +1091,31 @@ function render(){
 /* ---------- filtre pays ---------- */
 function populateCountries(){
   const sel=$("countryFilter"); const cur=sel.value;
+  /* Chess Hotel : les « pays » sont remplacés par les niveaux de ligue */
+  if(state.game==="chesshotel"){
+    /* deux façons de voir le classement, comme dans le jeu :
+       — par LIGUE (Maître, Or, Argent…) : tous les joueurs de ce niveau, classés aux points
+       — par DIVISION : la « table » que l'appli affiche (le groupe de ~100 joueurs du joueur,
+         plusieurs niveaux mélangés) */
+    const counts={}, divAgg={};
+    lastPlayers.forEach(p=>{
+      counts[p.leagueName]=(counts[p.leagueName]||0)+1;
+      const d=divAgg[p.divisionId]=divAgg[p.divisionId]||{n:0,tiers:{}};
+      d.n++; d.tiers[p.tier]=(d.tiers[p.tier]||0)+1;
+    });
+    const order=ChessHotel.TIER_ORDER.filter(k=>counts[k]).concat(Object.keys(counts).filter(k=>!ChessHotel.TIER_ORDER.includes(k)));
+    const domTier=d=>Object.entries(d.tiers).sort((a,b)=>b[1]-a[1])[0][0];
+    const divs=Object.keys(divAgg).map(Number).sort((a,b)=>b-a);
+    sel.innerHTML = `<option value="">🏅 Toutes les ligues (${lastPlayers.length})</option>`
+      + `<optgroup label="Ligues">` + order.map(k=>
+          `<option value="lg:${esc(k)}">${esc(ChessHotel.TIERS[k]||k)} (${counts[k]})</option>`).join("") + `</optgroup>`
+      + `<optgroup label="Divisions (tableaux de l'appli)">` + divs.map(d=>
+          `<option value="div:${d}">Division ${d} · ${esc(domTier(divAgg[d]))} (${divAgg[d].n})</option>`).join("") + `</optgroup>`;
+    const keepRaw = cur || CFG.CHESSHOTEL_LEAGUE || "";
+    const keep = keepRaw.startsWith("lg:")||keepRaw.startsWith("div:") ? keepRaw : (keepRaw?("lg:"+keepRaw):"");
+    sel.value = (keep && [...sel.options].some(o=>o.value===keep)) ? keep : "";
+    return;
+  }
   let codes = [...new Set(lastPlayers.map(p=>p.country).filter(Boolean))].sort();
   /* Checkmate : le classement national se charge à la demande pour n'importe
      quel pays → on propose aussi la liste configurée (CFG.CHECKMATE_COUNTRIES). */
@@ -1466,18 +1529,35 @@ function openCountries(){
   openPanel("countriesPanel");
   /* Chess Hotel ne publie pas de pays : on montre la répartition par niveau de ligue */
   if(state.game==="chesshotel"){
-    const agg={};
-    lastPlayers.forEach(p=>{ const t=p.tier||"Placement"; (agg[t]=agg[t]||[]).push(p); });
+    /* Chess Hotel : ni pays, ni classement mondial — on montre les LIGUES et les
+       DIVISIONS (un clic filtre le tableau, comme la table de l'appli). */
+    const tierAgg={}, divAgg={};
+    lastPlayers.forEach(p=>{
+      (tierAgg[p.leagueName]=tierAgg[p.leagueName]||[]).push(p);
+      const d=divAgg[p.divisionId]=divAgg[p.divisionId]||{list:[],tiers:{}};
+      d.list.push(p); d.tiers[p.tier]=(d.tiers[p.tier]||0)+1;
+    });
     const best=ps=>ps.slice().sort((a,b)=>b.points-a.points)[0];
-    const list=Object.entries(agg).sort((a,b)=>b[1].length-a[1].length).map(([t,ps])=>
-      `<div class="country-row" style="cursor:default"><span style="font-size:20px">🏅</span><b>${esc(t)}</b>
+    const tOrder=ChessHotel.TIER_ORDER.filter(k=>tierAgg[k]).concat(Object.keys(tierAgg).filter(k=>!ChessHotel.TIER_ORDER.includes(k)));
+    const tierRows=tOrder.map(k=>{ const ps=tierAgg[k], b=best(ps);
+      return `<div class="country-row" onclick="setCountry('lg:${esc(k)}')">
+        <span style="font-size:20px">🏅</span><b>${esc(ChessHotel.TIERS[k]||k)}</b>
         <span class="c-avg">${ps.length} joueur(s)</span>
-        <span class="c-count">meilleur : ${esc(best(ps).name)} (${best(ps).points} pts · Elo ${best(ps).elo})</span></div>`).join("");
+        <span class="c-count">meilleur : ${esc(b.name)} (${b.points} pts · Elo ${b.elo}) → voir ce tableau</span></div>`; }).join("");
+    const domTier=d=>Object.entries(d.tiers).sort((a,b)=>b[1]-a[1])[0][0];
+    const divRows=Object.keys(divAgg).map(Number).sort((a,b)=>b-a).map(d=>{ const g=divAgg[d], b=best(g.list);
+      return `<div class="country-row" onclick="setCountry('div:${d}')">
+        <span style="font-size:20px">🗂️</span><b>Division ${d}</b>
+        <span class="c-avg">${g.list.length} joueur(s) · ${esc(domTier(g))}</span>
+        <span class="c-count">meilleur : ${esc(b.name)} (${b.points} pts) → table de l'appli</span></div>`; }).join("");
     $("countriesPanel").innerHTML=`<div class="panel-head"><div class="avatar">🏅</div>
-      <div><h2>Niveaux de ligue — Chess Hotel · ${esc(curModeLabel())}</h2><div class="sub">table de la saison en cours · ${lastPlayers.length} joueur(s)</div></div>
-      <button class="panel-close" onclick="closePanels()">✕</button></div>${list}
-      <div class="chart-note" style="padding:10px 19px">Chess Hotel ne publie pas le pays des joueurs : ce panneau
-      montre la répartition par niveau (Placement → Maître) à la place des pays.</div>`;
+      <div><h2>Ligues &amp; divisions — Chess Hotel · ${esc(curModeLabel())}</h2><div class="sub">saison ${esc(state.lastSeason||"?")} · ${lastPlayers.length} joueur(s) classés · cliquez pour ouvrir un tableau</div></div>
+      <button class="panel-close" onclick="closePanels()">✕</button></div>
+      <h3 style="padding:6px 19px 0">Ligues (niveaux)</h3>${tierRows}
+      <h3 style="padding:14px 19px 0">Divisions — le groupe de ~100 joueurs dont l'appli affiche la table</h3>${divRows}
+      <div class="chart-note" style="padding:10px 19px 14px">Chess Hotel ne publie pas le pays des joueurs : ce panneau
+      remplace le classement par pays. Le rang affiché dans le tableau est celui de la ligue (ou de la division) choisie —
+      c'est le badge « RANK » du jeu.</div>`;
     return;
   }
   const agg={};

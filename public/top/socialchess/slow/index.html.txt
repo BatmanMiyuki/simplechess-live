@@ -1,5 +1,5 @@
 ChessLive — Top Slow socialchess (2026-09-21)
-Total joueurs classés : 14783
+Total joueurs classés : 14784
 1. Volker Camen — Elo 2395 (max 2395, 251 parties, 171V/2D/78N, pays DE)
 2. TheBigKat — Elo 2280 (max 2280, 350 parties, 101V/37D/212N, pays US)
 3. FLH — Elo 2259 (max 2259, 190 parties, 35V/12D/143N, pays NL)

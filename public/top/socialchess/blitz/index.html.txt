@@ -1,5 +1,5 @@
 ChessLive — Top Blitz socialchess (2026-09-21)
-Total joueurs classés : 12708
+Total joueurs classés : 12709
 1. KIYO_KUM — Elo 2418 (max 2418, 1699 parties, 1659V/12D/28N, pays PE)
 2. iSwall0w — Elo 2368 (max 2368, 1146 parties, 1131V/10D/5N, pays US)
 3. zAiglos — Elo 2332 (max 2332, 314 parties, 309V/4D/1N, pays NL)
@@ -9,4 +9,4 @@ Total joueurs classés : 12708
 7. Warrior poet — Elo 2273 (max 2273, 726 parties, 626V/91D/9N, pays GB)
 8. pashatechnique1 — Elo 2254 (max 2254, 6186 parties, 4729V/1313D/144N, pays LT)
 9. MobyDick53 — Elo 2252 (max 2252, 1138 parties, 937V/199D/2N, pays DE)
-10. NiiLoC — Elo 2246 (max 2246, 7946 parties, 7142V/634D/170N, pays US)
+10. NiiLoC — Elo 2247 (max 2247, 7947 parties, 7143V/634D/170N, pays US)

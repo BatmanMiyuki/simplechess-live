@@ -47,12 +47,21 @@ window.SC_CONFIG = {
                         "JP","KR","AU","BR","AR","CL","CO","PE","MX"],
 
   /* Jeu Chess Hotel (Foggy Media AB) — « fond orange, dame blanche » :
-     le jeu ne publie pas d'Elo mondial mais des LIGUES par saison (une table par
-     cadence, classée aux points de la saison ; élite Diamant/Maître classée à
-     l'Elo). ChessLive lit ces tables via l'API publique du site
-     (www.chesshotel.com/api/v1/division-scores, lecture seule, CORS ouvert).
-     Mettre false pour retirer le jeu de l'interface si l'éditeur ferme l'accès. */
+     le jeu ne publie pas de classement mondial mais des LIGUES, une par mode
+     (Bullet, Blitz, Rapid, Chess960) et par niveau (Placement, Bronze, Argent,
+     Or, Platine, Diamant, Maître). Les joueurs sont répartis en DIVISIONS
+     d'environ 100 joueurs, publiques ici :
+       GET https://www.chesshotel.com/api/v1/division-scores/{division}
+     (lecture seule, CORS ouvert, ni clé ni compte).
+     CHESSHOTEL_LEAGUE    : ligue affichée par défaut ("" = toutes les ligues).
+                            « master » = Maître, ta ligue dans l'appli.
+     CHESSHOTEL_DIVISIONS : numéros de division connus (facultatif : le provider
+                            sonde déjà au-dessus du plus grand numéro ; ajouter ici
+                            les nouvelles divisions si l'éditeur en ouvre d'autres).
+     Mettre CHESSHOTEL_ENABLED:false pour retirer le jeu si l'éditeur ferme l'accès. */
   CHESSHOTEL_ENABLED: true,
+  CHESSHOTEL_LEAGUE: "master",
+  CHESSHOTEL_DIVISIONS: [],
 
   /* Rafraîchissement automatique du classement (secondes) */
   AUTO_REFRESH_SEC: 60,

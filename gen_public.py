@@ -361,69 +361,99 @@ class SCoClient:
 
 
 # --- Chess Hotel (Foggy Media AB) -------------------------------------------
-# Le jeu ne publie pas d'Elo mondial : chaque saison, les joueurs marquent des
-# POINTS dans la table de la ligue de leur cadence (le classement « un peu
-# différent ») ; l'élite Diamant/Maître est classée à l'Elo.
+# Le jeu ne publie pas de classement mondial mais des LIGUES : pour chaque mode
+# (Bullet, Blitz, Rapid, Chess960) et chaque niveau (Placement → Maître), les
+# joueurs sont répartis en divisions d'environ 100 joueurs, classées aux POINTS.
+# Chaque division est publique : GET /api/v1/division-scores/{id}.
 CH_API = "https://www.chesshotel.com/api/v1"
-CH_DIV = {"chess960": 1, "bullet": 2, "blitz": 3, "rapid": 4}      # cadence -> division
-CH_ELITE = [5, 6]                                                  # Diamant, Maître
-CH_LABELS = {"blitz": "Blitz", "rapid": "Rapid", "bullet": "Bullet",
-             "chess960": "Chess960", "elite": "Élite"}
-CH_TIERS = {"placement": "Placement", "bronze": "Bronze", "silver": "Argent", "gold": "Or",
-            "platinum": "Platine", "diamond": "Diamant", "master": "Maître"}
-CH_NOTE = ("Ligues Chess Hotel : classement officiel par POINTS de la saison en cours "
-           "(toutes les cadences). L'Elo est affiché à titre indicatif ; l'élite "
-           "Diamant/Maître est classée à l'Elo.")
+CH_MODES = [("blitz", 4), ("rapid", 5), ("bullet", 3), ("chess960", 2)]
+CH_LABELS = {"blitz": "Blitz", "rapid": "Rapid", "bullet": "Bullet", "chess960": "Chess960"}
+CH_TIERS = [("master", "Maître"), ("diamond", "Diamant"), ("platinum", "Platine"),
+            ("gold", "Or"), ("silver", "Argent"), ("bronze", "Bronze"), ("placement", "Placement")]
+CH_TIER_LABELS = dict(CH_TIERS)
+CH_KNOWN_DIVS = [1, 2, 3, 4, 5, 6, 8] + list(range(2486, 2552))   # divisions connues
+CH_PROBE = 24                                                     # numéros sondés au-delà
+CH_NOTE = ("Ligues Chess Hotel : chaque mode a son tableau, classé aux POINTS de la saison, "
+           "du niveau Placement au niveau Maître (les joueurs sont répartis en divisions "
+           "d'environ 100 joueurs). L'Elo est affiché à titre indicatif.")
 
 
 async def _ch_division(client, div_id: int) -> list:
-    """Table brute d'une division de ligue (API publique, lecture seule)."""
+    """Tableau brut d'une division de ligue (API publique, lecture seule)."""
     r = await client.get(f"{CH_API}/division-scores/{div_id}")
     r.raise_for_status()
     return [x for x in (r.json().get("divisionScores") or []) if x.get("username")]
 
 
-def _ch_rows(raw: list, by_elo: bool = False) -> list:
-    """Lignes normalisées (mêmes champs que les autres jeux) + niveau et points."""
-    raw = sorted(raw, key=lambda x: (-(x.get("elo") if by_elo else x.get("points") or 0),
-                                     -(x.get("points") if by_elo else x.get("elo") or 0),
-                                     str(x.get("username") or "")))
+async def _ch_all_rows() -> list:
+    """Toutes les lignes de toutes les divisions connues (+ sondage des nouvelles)."""
+    ids = list(CH_KNOWN_DIVS)
+    probe = list(range(CH_KNOWN_DIVS[-1] + 1, CH_KNOWN_DIVS[-1] + 1 + CH_PROBE))
+    async with httpx.AsyncClient(timeout=90, headers={"Accept": "application/json"}) as client:
+        lists = await asyncio.gather(*[_ch_division(client, i) for i in ids + probe],
+                                     return_exceptions=True)
     rows = []
-    for i, x in enumerate(raw, 1):
-        rows.append({
-            "rank": i, "username": (x.get("username") or str(x.get("userId"))).strip(),
-            "country": "", "tier": CH_TIERS.get(x.get("leagueName"), x.get("leagueName") or ""),
-            "league": x.get("leagueName") or "",
-            "elo": int(x.get("elo") or 0), "elo_best": None,
-            "points": int(x.get("points") or 0),
-            "wins": int(x.get("wins") or 0), "losses": int(x.get("losses") or 0),
-            "draws": int(x.get("draws") or 0), "games": int(x.get("gameNr") or 0),
-            "season": int(x.get("season") or 0),
-        })
+    for raw in lists:
+        if isinstance(raw, Exception):
+            continue
+        for x in raw:
+            if not x.get("username"):
+                continue
+            rows.append({
+                "name": str(x["username"]).strip(), "user_id": x.get("userId"),
+                "mode_id": int(x.get("modeId") or 0), "league": x.get("leagueName") or "",
+                "tier": CH_TIER_LABELS.get(x.get("leagueName"), x.get("leagueName") or ""),
+                "division": int(x.get("divisionId") or 0), "season": int(x.get("season") or 0),
+                "elo": int(x.get("elo") or 0), "points": int(x.get("points") or 0),
+                "wins": int(x.get("wins") or 0), "losses": int(x.get("losses") or 0),
+                "draws": int(x.get("draws") or 0), "games": int(x.get("gameNr") or 0),
+            })
     return rows
 
 
+def _ch_rows(rows: list) -> list:
+    """Normalise (mêmes champs que les autres jeux) et classe aux points."""
+    rows = sorted(rows, key=lambda x: (-x["points"], -x["elo"], x["name"]))
+    out = []
+    for i, x in enumerate(rows, 1):
+        out.append({"rank": i, "username": x["name"], "country": "", "tier": x["tier"],
+                    "division": x["division"], "elo": x["elo"], "elo_best": None,
+                    "points": x["points"], "wins": x["wins"], "losses": x["losses"],
+                    "draws": x["draws"], "games": x["games"], "season": x["season"]})
+    return out
+
+
 async def fetch_chesshotel() -> dict:
-    """Classements des ligues Chess Hotel : une table par cadence + l'élite."""
+    """Un classement par mode (toutes ligues) + un classement par mode et par ligue."""
+    raw = await _ch_all_rows()
+    if not raw:
+        raise RuntimeError("aucune donnée de ligue")
+    season = next((r["season"] for r in raw if r["season"]), 0)
+    divs = len({r["division"] for r in raw})
     out = {}
-    async with httpx.AsyncClient(timeout=90, headers={"Accept": "application/json"}) as client:
-        for mode, div in CH_DIV.items():
-            raw = await _ch_division(client, div)
-            rows = _ch_rows(raw)
-            promus = sum(1 for r in rows if r["league"] != "placement")
-            out[( "chesshotel", mode)] = {
-                "label": CH_LABELS[mode], "rows": rows, "total": len(rows), "note": CH_NOTE,
-                "extra": f"{promus} joueur(s) déjà promu(s) au niveau supérieur" if promus else "",
-            }
-        raw = []
-        for div in CH_ELITE:
-            raw += await _ch_division(client, div)
-        rows = _ch_rows(raw, by_elo=True)
-        out[("chesshotel", "elite")] = {
-            "label": "Élite (Diamant + Maître)", "rows": rows, "total": len(rows),
-            "note": "Ligues élite Chess Hotel (Diamant et Maître), classées à l'Elo.",
-            "extra": "",
+    for mode, mode_id in CH_MODES:
+        mine = [r for r in raw if r["mode_id"] == mode_id]
+        if not mine:
+            continue
+        label = CH_LABELS[mode]
+        out[("chesshotel", mode)] = {
+            "label": label, "rows": _ch_rows(mine), "total": len(mine), "note": CH_NOTE,
+            "extra": f"toutes ligues · saison {season}",
+            "blurb": (f"Ligue {label} Chess Hotel (Foggy Media) : classement officiel de la saison "
+                      f"{season}, tous niveaux confondus (Placement → Maître), aux points de ligue. "
+                      f"Mis à jour le {fr_date()}."),
         }
+        for key, tier_label in CH_TIERS:                    # un classement par ligue
+            sub_rows = [r for r in mine if r["league"] == key]
+            if not sub_rows:
+                continue
+            out[("chesshotel", f"{mode}-{key}")] = {
+                "label": f"{label} · ligue {tier_label}", "rows": _ch_rows(sub_rows),
+                "total": len(sub_rows), "note": CH_NOTE,
+                "extra": f"ligue {tier_label} · saison {season}",
+                "blurb": (f"Ligue {label} — niveau {tier_label} — Chess Hotel (Foggy Media) : classement "
+                          f"officiel de la saison {season}, aux points de ligue. Mis à jour le {fr_date()}."),
+            }
     return out
 
 
@@ -432,8 +462,8 @@ def text_chesshotel(rows) -> str:
     lines = []
     for p in rows[:10]:
         lines.append(f"{p['rank']}. {p['username']} — {p['points']} points de ligue "
-                     f"(Elo {p['elo']}, niveau {p['tier'] or '?'}, {p['games']} parties, "
-                     f"{p['wins']}V/{p['losses']}D/{p['draws']}N, saison {p['season']})")
+                     f"(Elo {p['elo']}, niveau {p['tier'] or '?'}, division {p.get('division') or '?'}, "
+                     f"{p['games']} parties, {p['wins']}V/{p['losses']}D/{p['draws']}N, saison {p['season']})")
     return "\n".join(lines)
 
 
@@ -634,8 +664,11 @@ joueurs (pseudo, Elo, rang, jeu).
   (Europe Echecs / SimpleChess, Woodchop Software / SocialChess, Splend Apps / Checkmate,
   Foggy Media / Chess Hotel).
 - Classement Checkmate : ordre = Elo, puis victoires, puis points de puzzles (règle de l'app).
-- Classement Chess Hotel : ligues par saison, une table par cadence, classée aux POINTS
-  (l'élite Diamant/Maître est classée à l'Elo). Aucun Elo mondial n'est publié par le jeu.
+- Classement Chess Hotel : le jeu n'a pas de classement mondial — il organise des LIGUES
+  par mode (Bullet, Blitz, Rapid, Chess960) et par niveau (Placement, Bronze, Argent, Or,
+  Platine, Diamant, Maître), les joueurs étant répartis en divisions d'environ 100 joueurs.
+  Chaque tableau est classé aux POINTS de la saison ; ChessLive publie le classement de
+  chaque mode (toutes ligues) et de chaque ligue.
 - Les classements changent en général une fois par jour (SimpleChess ~60 min,
   SocialChess temps réel). Ce site est mis à jour quotidiennement.
 - Pour trouver un joueur, cherchez son pseudo dans `public/players.txt`.
@@ -689,10 +722,8 @@ def main():
             page(game_label, label, mode_id, d["rows"], d["total"], d["note"],
                  col5_label="Points" if ch else ("Puzzles" if cm else "Elo max"),
                  col5="points" if ch else ("puzzles" if cm else "elo_best"),
-                 col3_label="Niveau" if ch else "Pays",
-                 blurb=(f"Ligue {esc(label)} Chess Hotel (Foggy Media) : classement officiel de la "
-                        f"saison en cours — points de ligue, Elo, niveau, victoires et défaites. "
-                        f"Mis à jour le {fr_date()}." if ch else None)),
+                 col3_label="Ligue" if ch else "Pays",
+                 blurb=(d.get("blurb") if ch else None)),
             encoding="utf-8")
         sitemap.append({"loc": url, "lastmod": frd})
         hub_rows.append(
@@ -780,7 +811,7 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
     # versions texte des pages (confort IA)
     for (game, mode_id), d in data.items():
         tot_lbl = ("Comptes au total : " if game == "checkmate"
-                   else ("Joueurs classés (saison) : " if game == "chesshotel"
+                   else ("Joueurs classés dans ce tableau : " if game == "chesshotel"
                          else "Total joueurs classés : "))
         body = (text_checkmate(d["rows"]) if game == "checkmate"
                 else (text_chesshotel(d["rows"]) if game == "chesshotel" else text_top(d["rows"])))

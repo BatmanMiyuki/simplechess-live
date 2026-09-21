@@ -9,7 +9,7 @@ Quatre jeux supportés, avec **switch intégré** :
 | ♟️ **SimpleChess** (Europe Echecs) | Bullet · Blitz · Rapid · Chess960 · Puzzle Battle | `POST https://api.echecs.com/public/liveplay/top` (REST, CORS ouvert, sans clé) |
 | ⚔️ **SocialChess** (Woodchop Software) | Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow | `wss://api.socialchess.com?x=ws` (frame binaire `\x00` + JSON, commandes `usersByRank` / `getUser`) |
 | 👑 **Checkmate** / « Chess Online & Offline » (Splend Apps) | Mondial + **Top France** (rangs officiels) | Base Firebase/Firestore de l'app (projet `checkmate-17950`, collection `users`) — **lecture seule**, session **anonyme**, aucune donnée personnelle (voir plus bas) |
-| 🏨 **Chess Hotel** (Foggy Media AB) | **Ligues de la saison** : Blitz · Rapid · Bullet · Chess960 + **Élite** (Diamant/Maître) | `GET https://www.chesshotel.com/api/v1/division-scores/{division}` (API publique du site, **CORS ouvert**, lecture seule, sans clé ni compte) |
+| 🏨 **Chess Hotel** (Foggy Media AB) | **Ligues de la saison** : Bullet · Blitz · Rapid · Chess960, chacune en 7 niveaux (Placement → **Maître**) | `GET https://www.chesshotel.com/api/v1/division-scores/{division}` — toutes les divisions du jeu (API publique du site, **CORS ouvert**, lecture seule, sans clé ni compte) |
 
 ## ✨ Fonctionnalités (v3)
 
@@ -23,7 +23,7 @@ Quatre jeux supportés, avec **switch intégré** :
 - **Exports** : CSV (BOM UTF-8) et JSON — dans l'app (chips) **et** côté API (`?format=csv`)
 - **Panneau « Mon compte »** : SimpleChess (**Miyukipa** 🏆) + **Checkmate** (**ChessMiyuki**, rang mondial & national) + mesures ChessLive
 - **Checkmate (Splend Apps)** : classement **mondial** (rangs officiels, 1 000 premiers) **et national** — onglet « 🇫🇷 Top France » + filtre pays pour n'importe quel pays (chargé à la demande, 100 premiers par défaut). Recherche, profil détaillé, ligne « vous » mise en évidence, stats de la base (877 000 joueurs classés) — accès désactivable d'une ligne (`CHECKMATE_ENABLED: false`)
-- **Chess Hotel (Foggy Media)** : le jeu ne publie **pas** d'Elo mondial mais des **ligues par saison** — ChessLive affiche les 4 tables officielles (Blitz, Rapid, Bullet, Chess960, classées aux **points** de la saison) + l'onglet **Élite** (Diamant + Maître, classé à l'Elo). Colonnes adaptées (niveau de ligue à la place du pays, points à la place de l'Elo max), panneau « niveaux » (Placement → Maître), recherche, fiche joueur, désactivable (`CHESSHOTEL_ENABLED: false`)
+- **Chess Hotel (Foggy Media)** : le jeu n'a **pas** de classement mondial, il organise des **ligues** — par mode (Bullet, Blitz, Rapid, Chess960) et par niveau (Placement, Bronze, Argent, Or, Platine, Diamant, **Maître**), les joueurs étant répartis en **divisions** d'environ 100 joueurs. ChessLive lit **toutes les divisions publiques** et affiche : un tableau par mode classé aux **points** de la saison, un **filtre par ligue** ET par **division** (la division = exactement la « table » que l'appli montre au joueur), le rang affiché étant celui du tableau choisi (le badge « RANK » du jeu). Colonnes adaptées (Ligue à la place du Pays, Points à la place de l'Elo max), panneau « Ligues & divisions », recherche, fiche joueur, désactivable (`CHESSHOTEL_ENABLED: false`)
 - **☁️ Visibilité IA/SEO** : pages statiques générées (`public/`, `llms.txt`, `ai.txt`, `robots.txt`, `sitemap.xml`, `rss.xml`) pour que les moteurs de recherche **et les IA** puissent répondre « qui est le top 1 / top 10 » sur chaque jeu — **Miyukipa #1 bullet, blitz & rapid** 😉
 
 ---

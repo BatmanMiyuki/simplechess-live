@@ -1,5 +1,5 @@
 ChessLive — Top Classement (Elo) checkmate (2026-09-21)
-Comptes au total : 884084
+Comptes au total : 884067
 1. Oferbruk — Elo 2887 (7807 parties, 7234V/526D/47N, 25310 points de puzzles, pays IL)
 2. akess1 — Elo 2887 (9921 parties, 3726V/5833D/362N, 41117 points de puzzles, pays DE)
 3. rast_max22rus — Elo 2887 (2966 parties, 2075V/826D/65N, 6426 points de puzzles, pays RU)
