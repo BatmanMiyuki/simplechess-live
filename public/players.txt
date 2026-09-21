@@ -1,304 +1,304 @@
-# ChessLive — index des meilleurs joueurs (généré le 2026-09-12)
+# ChessLive — index des meilleurs joueurs (généré le 2026-09-21)
 # Format : pseudo | jeu | mode | elo | rang
 
-ChessMiyuki | Checkmate | Classement (Elo) | 2400 | #1783 (n°25 FR) · 156 parties · 231 pts puzzles
+ChessMiyuki | Checkmate | Classement (Elo) | 2401 | #1830 (n°27 FR) · 157 parties · 231 pts puzzles
+JebemVASSve | SimpleChess | Bullet | 3400 | #1
 HaineZau | SimpleChess | Blitz | 3166 | #1
+HELLO_SCAMMERS | SimpleChess | Bullet | 3154 | #2
+GM_Chobanin | SimpleChess | Bullet | 3006 | #3
+BoosterHaine | SimpleChess | Bullet | 3005 | #4
+CheaterHaineZau | SimpleChess | Bullet | 3003 | #5
 Oferbruk | Checkmate | Classement (Elo) | 2887 | #1
-Khalid82 | Checkmate | Classement (Elo) | 2887 | #2
+akess1 | Checkmate | Classement (Elo) | 2887 | #2
 rast_max22rus | Checkmate | Classement (Elo) | 2887 | #3
-srini78 | Checkmate | Classement (Elo) | 2887 | #4
-telenkovval59 | Checkmate | Classement (Elo) | 2887 | #5
-SharkFish | Checkmate | Classement (Elo) | 2887 | #6
+telenkovval59 | Checkmate | Classement (Elo) | 2887 | #4
+_RTE_ | Checkmate | Classement (Elo) | 2887 | #5
+IKRASH-912326 | Checkmate | Classement (Elo) | 2887 | #6
 sangermajidi | Checkmate | Classement (Elo) | 2887 | #7
-IKRASH-912326 | Checkmate | Classement (Elo) | 2887 | #8
+humayonmajidi2 | Checkmate | Classement (Elo) | 2887 | #8
+k_sudhy | Checkmate | Classement (Elo) | 2887 | #9
 Sultan2 | Checkmate | Classement (Elo) | 2887 | #10
-HAMID- | Checkmate | Classement (Elo) | 2886 | #11
-humayonmajidi2 | Checkmate | Classement (Elo) | 2885 | #9
-_tv- | Checkmate | Classement (Elo) | 2877 | #12
-ChessproUSA | Checkmate | Classement (Elo) | 2862 | #13
-IKRASH-AWZ | Checkmate | Classement (Elo) | 2850 | #14
-k_sudhy | Checkmate | Classement (Elo) | 2850 | #15
-kjbrzi | Checkmate | Classement (Elo) | 2831 | #30
-SANSANYCH | Checkmate | Classement (Elo) | 2828 | #16
-ZARQAVI | Checkmate | Classement (Elo) | 2820 | #17
-9090808019870601 | Checkmate | Classement (Elo) | 2816 | #19
-YOHANES_MGS | Checkmate | Classement (Elo) | 2815 | #18
-Petch_Phongsathorn | Checkmate | Classement (Elo) | 2815 | #20
-ChampmanU79 | Checkmate | Classement (Elo) | 2811 | #21
-Lars_Alexandersson | Checkmate | Classement (Elo) | 2809 | #23
-EliasChavezR | Checkmate | Classement (Elo) | 2807 | #24
-mostafaelbardesy | Checkmate | Classement (Elo) | 2804 | #25
-EliasEnriqueChavez | Checkmate | Classement (Elo) | 2804 | #26
-shawkernow | Checkmate | Classement (Elo) | 2801 | #28
-mandobando14 | Checkmate | Classement (Elo) | 2798 | #27
-Lionsgame | Checkmate | Classement (Elo) | 2795 | #29
-Pac-Man | Checkmate | Classement (Elo) | 2790 | #32
-TvoiSon | Checkmate | Classement (Elo) | 2789 | #34
-GMAyush | Checkmate | Classement (Elo) | 2788 | #33
-ashot01012022 | Checkmate | Classement (Elo) | 2784 | #35
-KRYGELj | Checkmate | Classement (Elo) | 2782 | #31
-chiominto2012 | Checkmate | Classement (Elo) | 2777 | #36
-JABQ | Checkmate | Classement (Elo) | 2777 | #38
-gintonic555jazz | Checkmate | Classement (Elo) | 2777 | #39
-JavielFernandez | Checkmate | Classement (Elo) | 2774 | #37
-pinoebbasta1953 | Checkmate | Classement (Elo) | 2774 | #42
-Meenu_2_1034 | Checkmate | Classement (Elo) | 2773 | #41
-nynawa | Checkmate | France, FR | 2769 | #1 (n°43 mondial)
-deknight | Checkmate | Classement (Elo) | 2769 | #45
-Ulrico | Checkmate | Classement (Elo) | 2767 | #40
-CRIVE | Checkmate | Classement (Elo) | 2763 | #46
-TheSoulMate | Checkmate | Classement (Elo) | 2760 | #48
-dolzhenkovaleksei2 | Checkmate | Classement (Elo) | 2759 | #47
-regisslina | Checkmate | Classement (Elo) | 2758 | #49
-irwanacoustic | Checkmate | Classement (Elo) | 2756 | #51
-ABDULWAHAB-ALI | Checkmate | Classement (Elo) | 2751 | #60
-zasuhinan83 | Checkmate | Classement (Elo) | 2750 | #53
-bapatpj | Checkmate | Classement (Elo) | 2748 | #54
-ShirShahJafa | Checkmate | Classement (Elo) | 2745 | #44
+_tv- | Checkmate | Classement (Elo) | 2886 | #11
+BJK_19 | Checkmate | Classement (Elo) | 2874 | #12
+ChessproUSA | Checkmate | Classement (Elo) | 2859 | #13
+IKRASH-AWZ | Checkmate | Classement (Elo) | 2850 | #15
+azimxodjayev4 | Checkmate | Classement (Elo) | 2848 | #16
+kjbrzi | Checkmate | Classement (Elo) | 2838 | #17
+SANSANYCH | Checkmate | Classement (Elo) | 2833 | #14
+mostafaelbardesy | Checkmate | Classement (Elo) | 2825 | #18
+ZARQAVI | Checkmate | Classement (Elo) | 2820 | #19
+EliasEnrique | Checkmate | Classement (Elo) | 2817 | #20
+Petch_Phongsathorn | Checkmate | Classement (Elo) | 2815 | #21
+shawkernow | Checkmate | Classement (Elo) | 2813 | #23
+nikhilkamblenpk | Checkmate | Classement (Elo) | 2812 | #22
+YOHANES_MGS | Checkmate | Classement (Elo) | 2806 | #24
+Lars_Alexandersson | Checkmate | Classement (Elo) | 2802 | #25
+EliasChavezR | Checkmate | Classement (Elo) | 2799 | #26
+SweetyDam | Checkmate | Classement (Elo) | 2796 | #27
+Lionsgame | Checkmate | Classement (Elo) | 2795 | #28
+SAVHENKOMIXAIL | Checkmate | Classement (Elo) | 2793 | #29
+AntonioAlvarezOjeda | Checkmate | Classement (Elo) | 2791 | #30
+TvoiSon | Checkmate | Classement (Elo) | 2790 | #31
+GMAyush | Checkmate | Classement (Elo) | 2788 | #32
+9090808019870601 | Checkmate | Classement (Elo) | 2787 | #33
+Madridesta | Checkmate | Classement (Elo) | 2787 | #34
+Pac-Man | Checkmate | Classement (Elo) | 2787 | #35
+JavielFernandez | Checkmate | Classement (Elo) | 2787 | #42
+ATADhm1 | Checkmate | Classement (Elo) | 2786 | #36
+GT10-R | Checkmate | Classement (Elo) | 2786 | #37
+gintonic555jazz | Checkmate | Classement (Elo) | 2781 | #39
+nynawa | Checkmate | France, FR | 2780 | #1 (n°38 mondial)
+mandobando14 | Checkmate | Classement (Elo) | 2779 | #41
+chiominto2012 | Checkmate | Classement (Elo) | 2776 | #40
+grafhromoto | Checkmate | Classement (Elo) | 2776 | #46
+bonhommenoel61 | Checkmate | France, FR | 2775 | #2 (n°43 mondial)
+ABDULWAHAB-ALI | Checkmate | Classement (Elo) | 2775 | #44
+agi19740404 | Checkmate | Classement (Elo) | 2772 | #45
+deknight | Checkmate | Classement (Elo) | 2769 | #47
+pinoebbasta1953 | Checkmate | Classement (Elo) | 2766 | #49
+TheSoulMate | Checkmate | Classement (Elo) | 2763 | #50
+irwanacoustic | Checkmate | Classement (Elo) | 2760 | #51
+dolzhenkovaleksei2 | Checkmate | Classement (Elo) | 2759 | #52
+Meenu_2_1034 | Checkmate | Classement (Elo) | 2759 | #53
+JABQ | Checkmate | Classement (Elo) | 2758 | #48
+ashot01012022 | Checkmate | Classement (Elo) | 2758 | #54
+Ulrico | Checkmate | Classement (Elo) | 2756 | #55
+bapatpj | Checkmate | Classement (Elo) | 2754 | #57
+regisslina | Checkmate | Classement (Elo) | 2753 | #56
+warped4 | Checkmate | Classement (Elo) | 2751 | #58
+gilmanov_2027 | Checkmate | Classement (Elo) | 2750 | #59
+markfriesen2014 | Checkmate | Classement (Elo) | 2749 | #60
 Miyukipa | SimpleChess | Blitz | 2744 | #2
-QATAR | Checkmate | Classement (Elo) | 2743 | #55
-terrellsanders96 | Checkmate | Classement (Elo) | 2741 | #52
-agi19740404 | Checkmate | Classement (Elo) | 2741 | #56
-MEgaCHess | Checkmate | Classement (Elo) | 2740 | #58
-GM_cao | Checkmate | Classement (Elo) | 2740 | #59
-fabmaitre73 | Checkmate | Classement (Elo) | 2729 | #57
-Madlxlxl | Checkmate | France, FR | 2728 | #2 (n°72 mondial)
-BeautyFinn | Checkmate | Classement (Elo) | 2716 | #61
-akess1 | Checkmate | Classement (Elo) | 2705 | #22
-danielpicot2013 | Checkmate | France, FR | 2704 | #4 (n°159 mondial)
-Rocabar | Checkmate | France, FR | 2694 | #3 (n°112 mondial)
-doudoumaki | Checkmate | France, FR | 2688 | #5 (n°231 mondial)
-paulmorphy1984 | Checkmate | France, FR | 2683 | #6 (n°284 mondial)
-Milkar | Checkmate | France, FR | 2677 | #7 (n°317 mondial)
-Le-Merovingien | Checkmate | France, FR | 2659 | #9 (n°360 mondial)
-SuperMorphy | Checkmate | France, FR | 2650 | #10 (n°405 mondial)
-IsLaMilice3 | Checkmate | France, FR | 2648 | #8 (n°328 mondial)
-slavs120 | Checkmate | France, FR | 2648 | #11 (n°447 mondial)
+doudoumaki | Checkmate | France, FR | 2708 | #3 (n°117 mondial)
+Milkar | Checkmate | France, FR | 2704 | #4 (n°155 mondial)
+paulmorphy1984 | Checkmate | France, FR | 2700 | #5 (n°215 mondial)
+danielpicot2013 | Checkmate | France, FR | 2700 | #6 (n°221 mondial)
+SuperMorphy | Checkmate | France, FR | 2691 | #8 (n°267 mondial)
+Rocabar | Checkmate | France, FR | 2689 | #9 (n°282 mondial)
+Le-Merovingien | Checkmate | France, FR | 2678 | #10 (n°322 mondial)
+hysni566 | Checkmate | France, FR | 2676 | #11 (n°331 mondial)
+IsLaMilice3 | Checkmate | France, FR | 2673 | #7 (n°257 mondial)
+slavs120 | Checkmate | France, FR | 2626 | #12 (n°510 mondial)
+AmaterskiSajt | SimpleChess | Bullet | 2624 | #7
 Better67 | SimpleChess | Blitz | 2616 | #3
-natif7272 | Checkmate | France, FR | 2609 | #12 (n°491 mondial)
+kiyotakayanokoji2222 | Checkmate | France, FR | 2609 | #13 (n°531 mondial)
 GillesLeGrand | SimpleChess | Puzzle Battle | 2601 | #1
-jefalambert | Checkmate | France, FR | 2599 | #13 (n°556 mondial)
-hysni566 | Checkmate | France, FR | 2598 | #15 (n°617 mondial)
-hadjso | Checkmate | France, FR | 2588 | #14 (n°608 mondial)
-kaisskraiem | Checkmate | France, FR | 2552 | #17 (n°726 mondial)
-KobaKobakhidze001 | Checkmate | France, FR | 2530 | #16 (n°716 mondial)
+jefalambert | Checkmate | France, FR | 2599 | #14 (n°568 mondial)
+staps | Checkmate | France, FR | 2560 | #15 (n°654 mondial)
+hadjso | Checkmate | France, FR | 2558 | #17 (n°684 mondial)
+natif7272 | Checkmate | France, FR | 2557 | #16 (n°674 mondial)
+GdeStePaceri | SimpleChess | Bullet | 2546 | #9
+JM2L | Checkmate | France, FR | 2524 | #18 (n°792 mondial)
+KobaKobakhidze001 | Checkmate | France, FR | 2522 | #19 (n°825 mondial)
+Kk37 | Checkmate | France, FR | 2517 | #20 (n°842 mondial)
 444ddd | SimpleChess | Blitz | 2513 | #4
 bonsaii | SimpleChess | Blitz | 2506 | #5
 ILoveEnzo | SimpleChess | Blitz | 2506 | #6
-SUKUNA666 | SimpleChess | Blitz | 2498 | #7
-staps | Checkmate | France, FR | 2481 | #18 (n°885 mondial)
-Heisenberg0064 | Checkmate | France, FR | 2469 | #19 (n°1129 mondial)
-Kirua46 | Checkmate | France, FR | 2469 | #20 (n°1134 mondial)
+Alex13011 | Checkmate | France, FR | 2491 | #21 (n°981 mondial)
+SUKUNA666 | SimpleChess | Blitz | 2491 | #7
+Heisenberg0064 | Checkmate | France, FR | 2469 | #22 (n°1161 mondial)
+Kirua46 | Checkmate | France, FR | 2469 | #23 (n°1163 mondial)
+pajserxyz | SimpleChess | Bullet | 2467 | #10
 LUCHESSGhEiIiXc | SimpleChess | Blitz | 2459 | #8
 Inspire | SimpleChess | Puzzle Battle | 2454 | #2
-kiyotakayanokoji2222 | Checkmate | France, FR | 2452 | #56 (n°4563 mondial)
-🇱🇧 Alain 🇱🇧 | SocialChess | Blitz | 2444 | #1
-Alex13011 | Checkmate | France, FR | 2436 | #21 (n°1398 mondial)
-Yanisechec1 | Checkmate | France, FR | 2420 | #23 (n°1553 mondial)
-yesterdayggxg | Checkmate | France, FR | 2418 | #24 (n°1563 mondial)
-FRED83136 | Checkmate | France, FR | 2414 | #22 (n°1455 mondial)
+saredez25 | Checkmate | France, FR | 2444 | #24 (n°1371 mondial)
+Luzeri | SimpleChess | Bullet | 2430 | #11
+Yanisechec1 | Checkmate | France, FR | 2428 | #25 (n°1530 mondial)
+FRED83136 | Checkmate | France, FR | 2419 | #26 (n°1617 mondial)
+KIYO_KUM | SocialChess | Blitz | 2418 | #1
+lxlxxlxl | Checkmate | France, FR | 2413 | #38 (n°2435 mondial)
 MRS2021 | SimpleChess | Blitz | 2410 | #9
 YouriH | SimpleChess | Blitz | 2404 | #10
-KIYO_KUM | SocialChess | Blitz | 2401 | #2
-ChessMiyuki | Checkmate | France, FR | 2400 | #25 (n°1783 mondial)
-Anchients | Checkmate | France, FR | 2395 | #26 (n°1833 mondial)
-algaleal | Checkmate | France, FR | 2393 | #27 (n°1850 mondial)
-Wazizidu33 | Checkmate | France, FR | 2392 | #28 (n°1869 mondial)
+ChessMiyuki | Checkmate | France, FR | 2401 | #27 (n°1830 mondial)
+Anchients | Checkmate | France, FR | 2395 | #28 (n°1884 mondial)
+Volker Camen | SocialChess | Slow | 2395 | #1
+algaleal | Checkmate | France, FR | 2393 | #29 (n°1901 mondial)
+Wazizidu33 | Checkmate | France, FR | 2392 | #30 (n°1912 mondial)
 LUCEHJESII | SimpleChess | Blitz | 2389 | #11
+iSwall0w | SocialChess | Blitz | 2368 | #2
 2500ez | SimpleChess | Blitz | 2362 | #13
-davidchevnet77 | Checkmate | France, FR | 2361 | #29 (n°2186 mondial)
-iSwall0w | SocialChess | Blitz | 2360 | #3
-BaguetteChess | Checkmate | France, FR | 2353 | #31 (n°2281 mondial)
-antikbrocart | Checkmate | France, FR | 2349 | #32 (n°2328 mondial)
-GM_TrickyTricky | Checkmate | France, FR | 2349 | #33 (n°2334 mondial)
+davidchevnet77 | Checkmate | France, FR | 2361 | #31 (n°2228 mondial)
+BaguetteChess | Checkmate | France, FR | 2353 | #32 (n°2309 mondial)
+opacupa | SimpleChess | Bullet | 2353 | #13
+🇱🇧 Alain 🇱🇧 | SocialChess | Fast | 2352 | #1
+GM_TrickyTricky | Checkmate | France, FR | 2349 | #33 (n°2369 mondial)
+yesterdayggxg | Checkmate | France, FR | 2348 | #34 (n°2387 mondial)
 nikopoulos | SimpleChess | Puzzle Battle | 2348 | #3
-louisboomer | Checkmate | France, FR | 2345 | #30 (n°2225 mondial)
-christophetondut264 | Checkmate | France, FR | 2344 | #34 (n°2373 mondial)
-Maixent | Checkmate | France, FR | 2342 | #35 (n°2409 mondial)
-sebseb | SimpleChess | Blitz | 2338 | #14
-Ysaa | Checkmate | France, FR | 2333 | #36 (n°2520 mondial)
-zAiglos | SocialChess | Blitz | 2332 | #4
+louisboomer | Checkmate | France, FR | 2345 | #35 (n°2418 mondial)
+antikbrocart | Checkmate | France, FR | 2344 | #36 (n°2424 mondial)
+david77186n | Checkmate | France, FR | 2344 | #37 (n°2431 mondial)
+sebseb | SimpleChess | Blitz | 2339 | #15
+Ysaa | Checkmate | France, FR | 2333 | #39 (n°2576 mondial)
+zAiglos | SocialChess | Blitz | 2332 | #3
+Hop34 | SimpleChess | Bullet | 2330 | #14
+christophetondut264 | Checkmate | France, FR | 2329 | #40 (n°2620 mondial)
+dfredelain | Checkmate | France, FR | 2329 | #41 (n°2627 mondial)
 JeanJacques | SimpleChess | Rapid | 2327 | #2
-stas_lugansk | SocialChess | Fast | 2325 | #2
-dfredelain | Checkmate | France, FR | 2320 | #37 (n°2688 mondial)
 MrHub59 | SimpleChess | Blitz | 2319 | #16
-Jonnyboy1966 . | SocialChess | Blitz | 2303 | #5
-WalidElzoghbi | Checkmate | France, FR | 2297 | #38 (n°3055 mondial)
-TheMadScientist | SocialChess | Blitz | 2295 | #6
-Pentagon. | SocialChess | Fast | 2288 | #3
-KrapuJohn | Checkmate | France, FR | 2287 | #39 (n°3190 mondial)
-rotoce7 | SimpleChess | Blitz | 2287 | #17
-kogotin | SimpleChess | Blitz | 2286 | #18
-vintangecordoba | SimpleChess | Blitz | 2286 | #19
-TheBigKat | SocialChess | Slow | 2282 | #1
+terrierdavid84 | Checkmate | France, FR | 2318 | #42 (n°2791 mondial)
+blitzstream12 | Checkmate | France, FR | 2316 | #43 (n°2829 mondial)
+doremon | SocialChess | Bullet | 2310 | #1
+WalidElzoghbi | Checkmate | France, FR | 2297 | #44 (n°3153 mondial)
+xadrez95 | SimpleChess | Blitz | 2296 | #17
+TheMadScientist | SocialChess | Blitz | 2295 | #4
+MIFTERIAN | SimpleChess | Blitz | 2294 | #18
+stas_lugansk | SocialChess | Fast | 2293 | #3
+GM Carlsen/Neighbor | SocialChess | Blitz | 2291 | #5
+Gotsaaaton | SimpleChess | Blitz | 2290 | #19
+Jonnyboy1966 . | SocialChess | Blitz | 2288 | #6
+Pentagon. | SocialChess | Fast | 2288 | #5
+KrapuJohn | Checkmate | France, FR | 2287 | #46 (n°3304 mondial)
+rotoce7 | SimpleChess | Blitz | 2287 | #20
+kogotin | SimpleChess | Blitz | 2286 | #21
+vintangecordoba | SimpleChess | Blitz | 2286 | #22
+vapatom | Checkmate | France, FR | 2283 | #47 (n°3359 mondial)
 Chamaj | SimpleChess | Rapid | 2281 | #3
-frenchgirl | Checkmate | France, FR | 2280 | #40 (n°3282 mondial)
-david77186n | Checkmate | France, FR | 2279 | #51 (n°4288 mondial)
-xadrez95 | SimpleChess | Blitz | 2278 | #20
-vapatom | Checkmate | France, FR | 2277 | #41 (n°3349 mondial)
-A. Goryachkina | SocialChess | Fast | 2275 | #5
-manoular | SimpleChess | Blitz | 2274 | #21
-IM-Erik | Checkmate | France, FR | 2273 | #42 (n°3424 mondial)
+frenchgirl | Checkmate | France, FR | 2280 | #48 (n°3403 mondial)
+TheBigKat | SocialChess | Slow | 2280 | #2
+manoular | SimpleChess | Blitz | 2274 | #23
+IM-Erik | Checkmate | France, FR | 2273 | #49 (n°3562 mondial)
 Warrior poet | SocialChess | Blitz | 2273 | #7
-VegerenessYOUTUBE | SocialChess | Fast | 2272 | #8
-Carlsberg | SimpleChess | Blitz | 2269 | #22
-NAYXEN | Checkmate | France, FR | 2268 | #43 (n°3517 mondial)
-Patatov | SimpleChess | Blitz | 2267 | #23
-theboyhooddaze | Checkmate | France, FR | 2264 | #44 (n°3588 mondial)
-arktikmanzzzz | SimpleChess | Blitz | 2263 | #24
-asdort | SimpleChess | Blitz | 2260 | #25
-FLH | SocialChess | Slow | 2259 | #2
-LeRoiNoir | Checkmate | France, FR | 2258 | #45 (n°3692 mondial)
-Chessmass | SimpleChess | Rapid | 2258 | #4
-Xuentylom | SimpleChess | Blitz | 2257 | #26
-MIFTERIAN | SimpleChess | Blitz | 2255 | #27
+Alexandriaa | Checkmate | France, FR | 2272 | #45 (n°3154 mondial)
+hlas | Chess Hotel | Élite (Diamant + Maître) | 2269 | #1
+Carlsberg | SimpleChess | Blitz | 2269 | #24
+Patatov | SimpleChess | Blitz | 2267 | #25
+theboyhooddaze | Checkmate | France, FR | 2264 | #50 (n°3753 mondial)
+arktikmanzzzz | SimpleChess | Blitz | 2263 | #26
+Chessmass | SimpleChess | Rapid | 2262 | #4
+asdort | SimpleChess | Blitz | 2260 | #27
+Chobanin | SimpleChess | Bullet | 2260 | #16
+FLH | SocialChess | Slow | 2259 | #3
+LeRoiNoir | Checkmate | France, FR | 2258 | #51 (n°3876 mondial)
+Xuentylom | SimpleChess | Blitz | 2257 | #28
 Anthile | SimpleChess | Rapid | 2255 | #5
 pashatechnique1 | SocialChess | Blitz | 2254 | #8
-Exhumador_de_Put0$ | SocialChess | Fast | 2253 | #9
-art289 | SimpleChess | Blitz | 2252 | #29
-michel585964 | Checkmate | France, FR | 2251 | #47 (n°3851 mondial)
-snass | Checkmate | France, FR | 2251 | #52 (n°4412 mondial)
-mauricedaviot17 | Checkmate | France, FR | 2248 | #46 (n°3794 mondial)
-Enzo34K | Checkmate | France, FR | 2247 | #48 (n°3954 mondial)
+Exhumador_de_Put0$ | SocialChess | Fast | 2253 | #8
+art289 | SimpleChess | Blitz | 2252 | #30
+MobyDick53 | SocialChess | Blitz | 2252 | #9
+snass | Checkmate | France, FR | 2251 | #52 (n°4018 mondial)
+Chufty0815 | SocialChess | Bullet | 2250 | #3
+Enzo34K | Checkmate | France, FR | 2247 | #53 (n°4119 mondial)
+NiiLoC | SocialChess | Blitz | 2246 | #10
 sax2 | SimpleChess | Rapid | 2245 | #6
-malodi | SimpleChess | Blitz | 2244 | #30
-MobyDick53 | SocialChess | Blitz | 2244 | #9
-Maomeno | SocialChess | Blitz | 2243 | #10
-sonny1 | SocialChess | Slow | 2243 | #3
+malodi | SimpleChess | Blitz | 2244 | #31
+sonny1 | SocialChess | Slow | 2244 | #4
 Aruran | SocialChess | Blitz | 2241 | #11
-alvaros1891 | SimpleChess | Blitz | 2240 | #31
-human_777 | Checkmate | France, FR | 2239 | #49 (n°4153 mondial)
-nikonovenik | SimpleChess | Blitz | 2238 | #32
-mac1956 | SocialChess | Slow | 2238 | #4
-SUMYCO | SimpleChess | Blitz | 2237 | #33
-Chufty0815 | SocialChess | Bullet | 2237 | #3
-nene05 | SimpleChess | Blitz | 2236 | #34
-Elbilia | SimpleChess | Blitz | 2235 | #35
-ChaariHabiba | Checkmate | France, FR | 2233 | #58 (n°4952 mondial)
+alvaros1891 | SimpleChess | Blitz | 2240 | #32
+human_777 | Checkmate | France, FR | 2239 | #54 (n°4297 mondial)
+nikonovenik | SimpleChess | Blitz | 2238 | #33
+mac1956 | SocialChess | Slow | 2238 | #5
+SUMYCO | SimpleChess | Blitz | 2237 | #34
+nene05 | SimpleChess | Blitz | 2236 | #35
+Elbilia | SimpleChess | Blitz | 2235 | #36
+PaoloChace | SocialChess | Fast | 2235 | #9
 fenad56 | SimpleChess | Puzzle Battle | 2233 | #4
-Dayvid | SocialChess | Blitz | 2233 | #12
-pafolius | SimpleChess | Blitz | 2232 | #36
-sashkosashko | SimpleChess | Blitz | 2231 | #37
-TactiTal | SimpleChess | Blitz | 2230 | #38
-Gotsaaaton | SimpleChess | Blitz | 2230 | #39
-optimusprime2017 | SocialChess | Bullet | 2230 | #5
-snoope43 | Checkmate | France, FR | 2227 | #53 (n°4475 mondial)
-Pachaa | Checkmate | France, FR | 2227 | #54 (n°4491 mondial)
+Dayvid | SocialChess | Blitz | 2233 | #13
+pafolius | SimpleChess | Blitz | 2232 | #37
+optimusprime2017 | SocialChess | Blitz | 2232 | #14
+baptistefaucher47 | Checkmate | France, FR | 2231 | #55 (n°4533 mondial)
+sashkosashko | SimpleChess | Blitz | 2231 | #38
+AlexeyQuijano | SocialChess | Bullet | 2231 | #5
+TactiTal | SimpleChess | Blitz | 2230 | #39
+mauricedaviot17 | Checkmate | France, FR | 2228 | #56 (n°4601 mondial)
+snoope43 | Checkmate | France, FR | 2227 | #57 (n°4631 mondial)
+Pachaa | Checkmate | France, FR | 2227 | #58 (n°4646 mondial)
+Grmeč | Chess Hotel | Élite (Diamant + Maître) | 2226 | #2
 Notsoclear | SimpleChess | Blitz | 2226 | #40
-baptistefaucher47 | Checkmate | France, FR | 2225 | #55 (n°4551 mondial)
-NOOSAUCE | SimpleChess | Bullet | 2224 | #5
+samytitou | Checkmate | France, FR | 2224 | #59 (n°4728 mondial)
+NOOSAUCE | SimpleChess | Bullet | 2224 | #17
 Mase | SimpleChess | Blitz | 2223 | #41
 FREDTEACHING | SimpleChess | Blitz | 2223 | #42
-Lordgio1984🇺🇦 | SocialChess | Blitz | 2223 | #13
-jperchess | SocialChess | Slow | 2221 | #5
+sagitario_88 | SocialChess | Fast | 2223 | #10
 VASP74 | SimpleChess | Blitz | 2220 | #43
 Nando1790 | SimpleChess | Blitz | 2220 | #44
 LuccaSG2b | SimpleChess | Puzzle Battle | 2220 | #5
-DRYADU | SocialChess | Blitz | 2220 | #14
-amrezat2001 | Checkmate | France, FR | 2218 | #57 (n°4765 mondial)
-Cda | SimpleChess | Blitz | 2217 | #45
-Nanat | SimpleChess | Blitz | 2217 | #46
-AlexeyQuijano | SocialChess | Bullet | 2217 | #6
-estturjap | SocialChess | Fast | 2217 | #10
-NaveenSsy | SimpleChess | Blitz | 2214 | #47
-👑👸JOHN1970 | SocialChess | Slow | 2214 | #6
-🇩🇪TheLordTomasz | SocialChess | Blitz | 2213 | #16
-gbassereau | Checkmate | France, FR | 2211 | #60 (n°5017 mondial)
-haydendav | SocialChess | Fast | 2211 | #12
-Uriguri | SocialChess | Blitz | 2208 | #18
-doremon | SocialChess | Fast | 2208 | #13
-Theglobettroter | SimpleChess | Blitz | 2207 | #48
-chesscaradec | SimpleChess | Blitz | 2206 | #49
-grantfam | SocialChess | Blitz | 2205 | #20
-Diviners | SimpleChess | Blitz | 2201 | #50
-alamadrid1 | SimpleChess | Blitz | 2201 | #51
+DRYADU | SocialChess | Blitz | 2220 | #15
+EttoreWalter | SocialChess | Fast | 2219 | #12
+Beginner_Brazil | Chess Hotel | Élite (Diamant + Maître) | 2218 | #3
+Nanat | SimpleChess | Blitz | 2217 | #45
+Lordgio1984🇺🇦 | SocialChess | Blitz | 2217 | #16
+estturjap | SocialChess | Fast | 2217 | #13
+jperchess | SocialChess | Slow | 2217 | #6
+S.H.tra | SocialChess | Blitz | 2215 | #17
+NaveenSsy | SimpleChess | Blitz | 2214 | #46
+🇩🇪TheLordTomasz | SocialChess | Blitz | 2213 | #19
+Trystan | SimpleChess | Rapid | 2212 | #8
+francoisgaulois | Checkmate | France, FR | 2210 | #60 (n°4867 mondial)
+wakleemqn | SocialChess | Blitz | 2210 | #20
+chesscaradec | SimpleChess | Blitz | 2206 | #47
+grantfam | SocialChess | Blitz | 2205 | #22
+Uriguri | SocialChess | Blitz | 2203 | #23
+Sleepingsun | Chess Hotel | Élite (Diamant + Maître) | 2202 | #4
+dsergio | SimpleChess | Blitz | 2201 | #48
+Diviners | SimpleChess | Blitz | 2201 | #49
+alamadrid1 | SimpleChess | Blitz | 2201 | #50
+Theglobettroter | SimpleChess | Blitz | 2201 | #51
 ynos234 | SimpleChess | Blitz | 2201 | #52
 leotubarao | SimpleChess | Blitz | 2200 | #53
-Neoptoleme | SimpleChess | Blitz | 2200 | #54
+Cda | SimpleChess | Blitz | 2200 | #54
 evans8 | SimpleChess | Blitz | 2200 | #55
 polkeres | SimpleChess | Blitz | 2200 | #56
-godofriofrio | SimpleChess | Bullet | 2200 | #9
-kudos2 | SimpleChess | Bullet | 2200 | #10
-dsergio | SimpleChess | Blitz | 2199 | #57
-ChewingGum | SimpleChess | Blitz | 2199 | #58
-Comerajas | Checkmate | France, FR | 2196 | #59 (n°4993 mondial)
-Telafek | SimpleChess | Blitz | 2195 | #59
-chessdark | SimpleChess | Bullet | 2195 | #13
+godofriofrio | SimpleChess | Bullet | 2200 | #21
+kudos2 | SimpleChess | Bullet | 2200 | #22
+ChewingGum | SimpleChess | Blitz | 2199 | #57
+buahahaha567 | SimpleChess | Bullet | 2198 | #23
+Telafek | SimpleChess | Blitz | 2195 | #58
+chessdark | SimpleChess | Bullet | 2195 | #25
 Piba1 | SimpleChess | Puzzle Battle | 2193 | #6
-S.H.tra | SocialChess | Blitz | 2193 | #22
-kaspatout | SocialChess | Bullet | 2193 | #9
-loulou64x64 | SimpleChess | Blitz | 2191 | #60
-Miyuki Unstoppable | SocialChess | Blitz | 2190 | #23
+🦇Elvira 🦇 | SocialChess | Fast | 2192 | #15
+loulou64x64 | SimpleChess | Blitz | 2191 | #59
+Ernesto S. Karrion | SocialChess | Blitz | 2190 | #24
+Miyuki Unstoppable | SocialChess | Blitz | 2190 | #25
+kaspatout | SocialChess | Bullet | 2190 | #8
+dibona | SimpleChess | Blitz | 2189 | #60
+VegerenessYOUTUBE | SocialChess | Fast | 2189 | #16
+Thetwingambit | SocialChess | Blitz | 2188 | #27
 Slowandpainful234 | SocialChess | Fast | 2188 | #17
-PaoloChace | SocialChess | Fast | 2187 | #18
-Trystan | SimpleChess | Rapid | 2186 | #8
-Leona-S | SocialChess | Blitz | 2186 | #25
-Ernesto S. Karrion | SocialChess | Blitz | 2185 | #26
+JoeHGasvan | SocialChess | Blitz | 2187 | #28
+Leona-S | SocialChess | Blitz | 2186 | #29
 Sydneyoung | SocialChess | Slow | 2182 | #7
 Goke | SimpleChess | Puzzle Battle | 2181 | #8
-Thetwingambit | SocialChess | Blitz | 2181 | #27
 djanechess | SimpleChess | Rapid | 2180 | #9
-PurpleTurtle | SimpleChess | Bullet | 2179 | #16
+KESATRIA86 | SocialChess | Blitz | 2180 | #30
+PurpleTurtle | SimpleChess | Bullet | 2179 | #28
 Allmyloving14 | SimpleChess | Rapid | 2178 | #10
-EttoreWalter | SocialChess | Chess960 | 2178 | #1
-SGUARDO PORCINO | SocialChess | Blitz | 2176 | #28
-Chessto6 | SimpleChess | Puzzle Battle | 2174 | #9
-PAV 78 | SocialChess | Slow | 2174 | #8
-Zalome | SimpleChess | Rapid | 2173 | #12
+Zalome | SimpleChess | Rapid | 2175 | #12
 topos | SimpleChess | Rapid | 2173 | #13
-NiiLoC | SocialChess | Blitz | 2172 | #29
-ludo66 | Checkmate | France, FR | 2168 | #50 (n°4204 mondial)
-ginchi | SimpleChess | Bullet | 2165 | #17
-Yahbak | SimpleChess | Bullet | 2163 | #18
+LAMPA | SocialChess | Blitz | 2168 | #31
+sdeiana | SocialChess | Slow | 2168 | #9
+PAV 78 | SocialChess | Slow | 2168 | #8
+Windjammer10 | SocialChess | Slow | 2166 | #10
+ginchi | SimpleChess | Bullet | 2165 | #29
+Chessto6 | SimpleChess | Puzzle Battle | 2164 | #9
+Yahbak | SimpleChess | Bullet | 2163 | #30
 Lebinh | SimpleChess | Chess960 | 2163 | #4
-malachi23 | SocialChess | Bullet | 2163 | #11
-shem2026 | SocialChess | Blitz | 2161 | #30
-Arken_BY | SocialChess | Blitz | 2161 | #31
+Lincoln102 | SocialChess | Blitz | 2163 | #32
+Hannes™ | SocialChess | Slow | 2162 | #11
+Azhar01 | SocialChess | Blitz | 2161 | #33
+shem2026 | SocialChess | Blitz | 2161 | #34
+Arken_BY | SocialChess | Blitz | 2161 | #35
 Pcasa74 | SimpleChess | Rapid | 2160 | #15
-Windjammer10 | SocialChess | Slow | 2159 | #9
-wakleemqn | SocialChess | Blitz | 2158 | #33
-HarryPopper | SocialChess | Blitz | 2157 | #34
-TheClippers1 | SimpleChess | Bullet | 2156 | #19
-LAMPA | SocialChess | Blitz | 2154 | #35
-WaimeaChess | SocialChess | Slow | 2154 | #10
+WaimeaChess | SocialChess | Slow | 2158 | #12
+HarryPopper | SocialChess | Blitz | 2157 | #36
+TheClippers1 | SimpleChess | Bullet | 2156 | #33
+REACTIONDIRECTE | SimpleChess | Rapid | 2156 | #16
+Osyra | SimpleChess | Rapid | 2154 | #17
 Vinsimo | SimpleChess | Puzzle Battle | 2153 | #10
-bkg | SocialChess | Slow | 2153 | #11
-REACTIONDIRECTE | SimpleChess | Rapid | 2152 | #16
-Azhar01 | SocialChess | Blitz | 2151 | #36
-Hannes™ | SocialChess | Slow | 2151 | #12
-GM Sebas | SocialChess | Blitz | 2150 | #37
-Osyra | SimpleChess | Rapid | 2149 | #17
+bkg | SocialChess | Slow | 2151 | #13
+GM Sebas | SocialChess | Fast | 2149 | #27
 GM Arafat yawar | SocialChess | Blitz | 2148 | #38
+Installadurrrr | SocialChess | Bullet | 2148 | #15
 Neutron_Stars | SimpleChess | Rapid | 2147 | #18
 NuevaMente | SimpleChess | Rapid | 2146 | #19
 lu89 | SimpleChess | Rapid | 2145 | #20
-chessfixy | SocialChess | Fast | 2144 | #26
-JoeHGasvan | SocialChess | Rapid | 2144 | #2
+hennyh01 | SocialChess | Slow | 2143 | #14
+Ksenia Baumann | SocialChess | Blitz | 2142 | #39
+haydendav | SocialChess | Fast | 2142 | #30
+SGUARDO PORCINO | SocialChess | Blitz | 2141 | #40
+chessfixy | SocialChess | Fast | 2141 | #31
 portugachess | SimpleChess | Rapid | 2138 | #21
-ch_marios | SocialChess | Blitz | 2138 | #40
-hennyh01 | SocialChess | Slow | 2138 | #13
-Condemor 🧛‍♂️ | SocialChess | Fast | 2137 | #29
+ch_marios | SocialChess | Blitz | 2138 | #41
+shubham-singh | SocialChess | Fast | 2138 | #32
+Condemor 🧛‍♂️ | SocialChess | Fast | 2137 | #33
 EngineKidi | SimpleChess | Rapid | 2135 | #22
-defaz | SocialChess | Blitz | 2135 | #42
-Lincoln102 | SocialChess | Blitz | 2132 | #43
-DizNu | SocialChess | Fast | 2132 | #31
-asdetrebol | SimpleChess | Bullet | 2131 | #21
-alfilvioleta | SimpleChess | Bullet | 2130 | #22
-cuchille | SimpleChess | Bullet | 2130 | #23
-Chaze | SimpleChess | Bullet | 2130 | #24
-Jose Gregorio Lopez | SocialChess | Fast | 2130 | #32
-panthere2000 | SimpleChess | Rapid | 2129 | #23
-darkshadows | SimpleChess | Bullet | 2126 | #25
-franky53 | SocialChess | Slow | 2126 | #14
-💗beautifulwoman | SocialChess | Blitz | 2125 | #44
-peterpan30 | SocialChess | Fast | 2124 | #35
-gertrudo | SimpleChess | Bullet | 2123 | #26
-Otto_Mat | SimpleChess | Puzzle Battle | 2123 | #11
-zardaxt | SocialChess | Fast | 2123 | #36
-gabineto | SimpleChess | Bullet | 2122 | #27
-shubham-singh | SocialChess | Blitz | 2122 | #45
-Lawman | SocialChess | Slow | 2122 | #15
-fisiado | SimpleChess | Bullet | 2121 | #28
-alfilgranate | SimpleChess | Bullet | 2120 | #29
-spassky64 | SimpleChess | Bullet | 2120 | #30
-blv | SocialChess | Slow | 2120 | #16
+Solidplayer123 | SocialChess | Bullet | 2132 | #17

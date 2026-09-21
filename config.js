@@ -22,6 +22,7 @@ window.SC_CONFIG = {
   MY_USERNAME: "Miyukipa",
   MY_USERNAME_CM: "ChessMiyuki",
   MY_USERNAME_SC: "",
+  MY_USERNAME_CH: "",     /* Chess Hotel (Foggy Media) — à renseigner quand tu auras un compte */
 
   /* Jeu Checkmate (Splend Apps) :
      CHECKMATE_LIMIT = nombre de premiers du classement officiel chargé
@@ -44,6 +45,14 @@ window.SC_CONFIG = {
                         "RU","UA","TR","IL","EG","MA","DZ","TN","SN","CI","CM","NG",
                         "ZA","SA","AE","QA","IN","PK","BD","ID","PH","VN","TH","CN",
                         "JP","KR","AU","BR","AR","CL","CO","PE","MX"],
+
+  /* Jeu Chess Hotel (Foggy Media AB) — « fond orange, dame blanche » :
+     le jeu ne publie pas d'Elo mondial mais des LIGUES par saison (une table par
+     cadence, classée aux points de la saison ; élite Diamant/Maître classée à
+     l'Elo). ChessLive lit ces tables via l'API publique du site
+     (www.chesshotel.com/api/v1/division-scores, lecture seule, CORS ouvert).
+     Mettre false pour retirer le jeu de l'interface si l'éditeur ferme l'accès. */
+  CHESSHOTEL_ENABLED: true,
 
   /* Rafraîchissement automatique du classement (secondes) */
   AUTO_REFRESH_SEC: 60,

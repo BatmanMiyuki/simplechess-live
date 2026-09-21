@@ -195,7 +195,7 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M6 21h10M6 18h8M5.5 5.5C5.5 3 8 1.5 10.5 1.8c2.4.3 4.2 2 4.6 4.3.5 2.6-.3 4.4-1.3 6.2-.8 1.5-1.3 2.7-1.3 4.7h-4c0-2.2-.5-3.6-1.4-5.2C6.1 10 5.5 7.8 5.5 5.5Z" fill="#eef4f8"/><circle cx="10" cy="5" r="1" fill="#0a0e13"/><path d="M15.5 6.5h2.2a2.3 2.3 0 0 1 0 4.6h-1.2l2.7 3.4h-3l-2.4-3.2" stroke="#7fdb6a" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg>
       <span class="live-dot"></span>
     </div>
-    <h1>ChessLive<small>Classements en direct — SimpleChess · SocialChess · Checkmate · Elo &amp; stats</small></h1>
+    <h1>ChessLive<small>Classements en direct — SimpleChess · SocialChess · Checkmate · Chess Hotel · Elo &amp; stats</small></h1>
     <div class="header-actions">
       <button class="account-btn" id="accountBtn"><span class="mini-ava">👤</span><span id="accountName">Mon compte</span></button>
       <button class="install-btn" id="installBtn">⬇️ Installer</button>
@@ -233,7 +233,7 @@
     <table>
       <thead>
         <tr>
-          <th style="width:60px">#</th><th>Joueur</th><th>Pays</th>
+          <th style="width:60px">#</th><th>Joueur</th><th id="th3">Pays</th>
           <th style="text-align:right">Elo</th><th style="text-align:right" id="th5">Elo max</th>
           <th style="text-align:right">V</th><th style="text-align:right">D</th>
           <th style="text-align:right">N</th><th style="text-align:right">Parties</th>
@@ -249,13 +249,16 @@
   </div>
 
   <footer>
-    <b>ChessLive</b> — projet non officiel, non affilié à Europe Echecs / SimpleChess, à Woodchop Software / SocialChess
-    ni à Splend Apps / Checkmate.
-    Données : API publique SimpleChess (api.echecs.com), WebSocket SocialChess (api.socialchess.com) et classement
-    Checkmate lu en lecture seule dans la base de l'app (session anonyme, aucune donnée personnelle), mises en cache localement.
+    <b>ChessLive</b> — projet non officiel, non affilié à Europe Echecs / SimpleChess, à Woodchop Software / SocialChess,
+    à Splend Apps / Checkmate ni à Foggy Media / Chess Hotel.
+    Données : API publique SimpleChess (api.echecs.com), WebSocket SocialChess (api.socialchess.com), classement
+    Checkmate lu en lecture seule dans la base de l'app (session anonyme, aucune donnée personnelle) et ligues
+    Chess Hotel lues via son API publique (www.chesshotel.com/api/v1/division-scores, lecture seule, CORS ouvert),
+    mises en cache localement.
     <br>Modes disponibles : SimpleChess <code>bullet · blitz · standard · chess960 · puzzlesbatl</code> ·
     SocialChess <code>Bullet · Blitz · Rapid · Chess960 · Classical · Fast · Slow</code> ·
-    Checkmate <code>classement unique (Elo + victoires + puzzles)</code> · Docs API : <code>/docs</code>
+    Checkmate <code>classement unique (Elo + victoires + puzzles)</code> ·
+    Chess Hotel <code>Blitz · Rapid · Bullet · Chess960 · Élite (Diamant + Maître)</code> · Docs API : <code>/docs</code>
     <br>🤖 Pages publiques lisibles par les IA (top 10, classements) : <a href="./public/" style="color:var(--cyan)">public/index.html</a> · <a href="./llms.txt" style="color:var(--cyan)">llms.txt</a> · <a href="./public/llms-top.txt" style="color:var(--cyan)">llms-top.txt</a>
   </footer>
 </div>
@@ -266,7 +269,8 @@
    ========================================================= */
 const CFG = Object.assign({
   API_MODE:"amont", API_BASE:"", DEFAULT_GAME:"simplechess",
-  MY_USERNAME:"ILoveKaroline", MY_USERNAME_CM:"", MY_USERNAME_SC:"", AUTO_REFRESH_SEC:60, CHECKMATE_ENABLED:true
+  MY_USERNAME:"ILoveKaroline", MY_USERNAME_CM:"", MY_USERNAME_SC:"", MY_USERNAME_CH:"",
+  AUTO_REFRESH_SEC:60, CHECKMATE_ENABLED:true, CHESSHOTEL_ENABLED:true
 }, window.SC_CONFIG || {});
 
 /* =========================================================
@@ -274,7 +278,7 @@ const CFG = Object.assign({
    ========================================================= */
 const M_ICONS = {bullet:"🚀", blitz:"⚡", standard:"🕒", chess960:"🎲", puzzlesbatl:"🧩",
                  Bullet:"🚀", Blitz:"⚡", Rapid:"🕒", Chess960:"🎲", Classical:"🏛", Fast:"🔥", Slow:"📮",
-                 rank:"👑", france:"🇫🇷"};
+                 rank:"👑", france:"🇫🇷", elite:"🏆"};
 
 const GAMES = {
   simplechess: {
@@ -294,6 +298,16 @@ const GAMES = {
     modes:[["rank","Classement"],["france","Top France"]],   // pas de cadences : un seul Elo (niveau)
     rateKey:"elo",
     col5:"Puzzles",                  // 5e colonne du tableau = points de puzzles
+  },
+  chesshotel: {
+    name:"Chess Hotel", icon:"🏨", tag:"CH",       // fond orange, dame blanche
+    /* Classement un peu différent des autres jeux : Chess Hotel ne publie pas
+       d'Elo mondial mais des LIGUES par saison, une table par cadence, classée
+       aux POINTS (et l'élite Diamant/Maître classée à l'Elo). */
+    modes:[["blitz","Blitz"],["rapid","Rapid"],["bullet","Bullet"],["chess960","Chess960"],["elite","Élite"]],
+    rateKey:"elo",
+    col3:"Ligue", col3key:"tier",   // la 3e colonne montre le niveau (Placement → Maître)
+    col5:"Points", col5key:"points", // 5e colonne = points de la saison
   },
 };
 
@@ -702,10 +716,134 @@ const Checkmate = (()=>{
   };
 })();
 
-/* jeux actifs — config.js peut désactiver Checkmate si l'éditeur ferme l'accès */
+/* =========================================================
+   PROVIDER 4 — CHESS HOTEL (Foggy Media AB) — LES LIGUES
+   Source : API publique du site (www.chesshotel.com/api/v1), lecture seule,
+   CORS ouvert (testé depuis cette page). Le site ne publie AUCUN Elo mondial :
+   chaque saison, les joueurs jouent des « parties de ligue » et marquent des
+   POINTS dans la table de leur division — c'est le classement « un peu
+   différent mais il y en a un ».
+     · /division-scores/1 → ligue Chess960      · /division-scores/3 → ligue Blitz
+     · /division-scores/2 → ligue Bullet        · /division-scores/4 → ligue Rapid
+     · /division-scores/5 et /6 → élite Diamant + Maître
+   Ordre officiel du site = points décroissants (l'élite : Elo décroissant).
+   Si l'éditeur ferme l'accès, mettre CHESSHOTEL_ENABLED:false dans config.js.
+   ========================================================= */
+const ChessHotel = (()=>{
+  const API = "https://www.chesshotel.com/api/v1";
+  const DIV = {chess960:1, bullet:2, blitz:3, rapid:4};   // cadence -> division
+  const ELITE = [5, 6];                                   // Diamant, Maître
+  const TIERS = {placement:"Placement", bronze:"Bronze", silver:"Argent", gold:"Or",
+                 platinum:"Platine", diamond:"Diamant", master:"Maître"};
+
+  async function division(id){
+    const r = await fetch(`${API}/division-scores/${id}`, {headers:{"Accept":"application/json"}});
+    if(!r.ok) throw new Error(`HTTP ${r.status} (Chess Hotel)`);
+    const j = await r.json();
+    if(!j || !Array.isArray(j.divisionScores)) throw new Error("Réponse inattendue de Chess Hotel");
+    return j.divisionScores.filter(x=>x && x.username);
+  }
+  const tierName = x => TIERS[x.leagueName] || x.leagueName || "";
+  const toRow = (x,rank)=>({
+    id:x.userId, name:String(x.username).trim(), country:"",   // le site laisse parfois des espaces
+    elo:Number(x.elo)||0, eloBest:null, points:Number(x.points)||0,
+    tier:tierName(x), leagueName:x.leagueName||"", season:Number(x.season)||0,
+    wins:Number(x.wins)||0, losses:Number(x.losses)||0, draws:Number(x.draws)||0,
+    games:Number(x.gameNr)||0, rank, modeId:Number(x.modeId)||0,
+    bonusPool:Number(x.bonusPool)||0, raw:x
+  });
+  /* tris appliqués aux DONNÉES BRUTES de l'API (champs points/elo/username) */
+  const rawByPoints=(a,b)=>(Number(b.points)||0)-(Number(a.points)||0)
+                        || (Number(b.elo)||0)-(Number(a.elo)||0)
+                        || String(a.username||"").localeCompare(String(b.username||""),"fr");
+  const rawByElo   =(a,b)=>(Number(b.elo)||0)-(Number(a.elo)||0)
+                        || (Number(b.points)||0)-(Number(a.points)||0)
+                        || String(a.username||"").localeCompare(String(b.username||""),"fr");
+  const seasonOf = rows => (rows.find(r=>r.season)||{}).season || "?";
+
+  return {
+    /* classement officiel des ligues (ordre du site : points, ou Elo pour l'élite) */
+    async leaderboard(mode){
+      if(mode==="elite"){
+        const lists = await Promise.all(ELITE.map(division));
+        const raw = [].concat(...lists);
+        if(!raw.length) throw new Error("Aucun joueur dans les ligues élite Chess Hotel");
+        const rows = raw.sort(rawByElo).map((x,i)=>toRow(x,i+1));
+        const tiers = [...new Set(rows.map(r=>r.tier))].join(" + ");
+        return {rows, total:rows.length,
+          source:`Chess Hotel (Foggy Media) · ligues élite ${tiers} · saison ${seasonOf(rows)} `
+               + `· classement Elo · lecture seule`};
+      }
+      const id = DIV[mode];
+      if(!id) throw new Error("Cadence Chess Hotel inconnue");
+      const raw = (await division(id)).sort(rawByPoints);
+      if(!raw.length) throw new Error("Ligue Chess Hotel vide pour cette cadence");
+      const rows = raw.map((x,i)=>toRow(x,i+1));
+      const promus = rows.filter(r=>r.leagueName!=="placement").length;
+      const label = (GAMES.chesshotel.modes.find(m=>m[0]===mode)||[,""])[1];
+      return {rows, total:rows.length,
+        source:`Chess Hotel (Foggy Media) · ligue ${label} · saison ${seasonOf(rows)} · classement officiel `
+             + `aux points${promus?` · ${promus} promu(s) au niveau supérieur`:""} · lecture seule`};
+    },
+    /* le site ne publie pas d'annuaire : on fouille les tables de ligue
+       (on accepte le pseudo exact OU l'identifiant numérique du joueur) */
+    async player(idOrName){
+      const raw0 = String(idOrName||"").trim();
+      if(!raw0) throw new Error("Pseudo Chess Hotel vide");
+      const wantedId = /^\d+$/.test(raw0) ? Number(raw0) : null;
+      const target = raw0.toLowerCase();
+      const hit = x => wantedId!=null ? Number(x.userId)===wantedId
+                                      : String(x.username||"").trim().toLowerCase()===target;
+      const ids = [...Object.values(DIV), ...ELITE, 8];
+      const lists = await Promise.all(ids.map(i=>division(i).catch(()=>[])));
+      const found = [];
+      lists.forEach((list,idx)=>{
+        const div = ids[idx];
+        [...list].sort(ELITE.includes(div)?rawByElo:rawByPoints)
+          .forEach((x,i)=>{ if(hit(x)) found.push([div,x,i+1]); });
+      });
+      if(!found.length) throw new Error("Introuvable dans les ligues de la saison en cours (le site ne publie pas d'annuaire des joueurs)");
+      const ratings = found.map(([div,x,pos])=>({
+        mode:"div"+div, label:`${tierName(x)||"Ligue"} · division ${div}` + (pos?` · #${pos}`:""),
+        elo:Number(x.elo)||0, eloBest:null, points:Number(x.points)||0,
+        tier:tierName(x), games:Number(x.gameNr)||0,
+        wins:Number(x.wins)||0, losses:Number(x.losses)||0, draws:Number(x.draws)||0,
+      })).sort((a,b)=>b.elo-a.elo);
+      return {id:found[0][1].userId, name:String(found[0][1].username), country:"", avatar:null,
+        maxElo:Math.max(...ratings.map(r=>r.elo)), extra:`Ligues Chess Hotel — saison ${found[0][1].season}`,
+        ratings};
+    },
+    /* totaux de la saison : joueurs ayant un score de ligue, par cadence */
+    async totals(){
+      const ids = [...new Set([...Object.values(DIV), ...ELITE, 8])];
+      const lists = await Promise.all(ids.map(i=>division(i).catch(()=>[])));
+      const key = {1:"chess960", 2:"bullet", 3:"blitz", 4:"rapid"};
+      const sets = {blitz:new Set(), rapid:new Set(), bullet:new Set(), chess960:new Set(), elite:new Set()};
+      let all = new Set(), season = "";
+      lists.forEach((list,idx)=>{
+        const div = ids[idx];
+        list.forEach(x=>{
+          all.add(x.userId);
+          if(!season && x.season) season = x.season;
+          if(key[div]) sets[key[div]].add(x.userId);
+          if(ELITE.includes(div)) sets.elite.add(x.userId);
+        });
+      });
+      const byMode = {}; Object.keys(sets).forEach(k=>byMode[k]=sets[k].size);
+      return {byMode,
+        note:`Chess Hotel ne publie pas d'Elo mondial : ${all.size.toLocaleString("fr-FR")} joueurs ont un score `
+           + `dans les ligues de la saison ${season||"?"} (les 5 premiers niveaux sont publics, le niveau Placement `
+           + `est le plus peuplé). Chaque cadence a sa propre table, classée aux points.`};
+    }
+  };
+})();
+
+/* jeux actifs — config.js peut désactiver Checkmate / Chess Hotel si l'éditeur ferme l'accès */
 const PROVIDERS = {simplechess:SimpleChess, socialchess:SocialChess};
 if(CFG.CHECKMATE_ENABLED !== false){ PROVIDERS.checkmate = Checkmate; }
 else { delete GAMES.checkmate; }
+if(CFG.CHESSHOTEL_ENABLED !== false){ PROVIDERS.chesshotel = ChessHotel; }
+else { delete GAMES.chesshotel; }
 
 /* ---------- mode "api" (backend FastAPI) ---------- */
 async function apiModeLeaderboard(game, mode){
@@ -787,6 +925,11 @@ function buildGameSwitch(){
 }
 function buildTabs(){
   if($("th5")) $("th5").textContent = curGame().col5 || "Elo max";
+  if($("th3")) $("th3").textContent = curGame().col3 || "Pays";
+  /* Chess Hotel ne publie pas le pays des joueurs : le filtre pays n'a pas de sens */
+  const noCC = state.game==="chesshotel";
+  $("countryFilter").style.display = noCC ? "none" : "";
+  if(noCC) $("countryFilter").value = "";
   /* onglet national : libellé selon le pays configuré */
   if(state.game==="checkmate"){
     const cc=CFG.CHECKMATE_COUNTRY||"FR";
@@ -828,6 +971,17 @@ async function load(force=false){
   }
 }
 const hasFlagEmoji = s => /[\u{1F1E6}-\u{1F1FF}]/u.test(s||"");
+/* 3e colonne (« Pays ») : le niveau de ligue pour Chess Hotel */
+const c3value = (p,g=curGame()) => g.col3key==="tier" ? (p.tier||"—") : (p.country||"—");
+/* 5e colonne : dépend du jeu (Elo max, points de puzzles, points de ligue…) */
+function c5value(p,g=curGame()){
+  if(g.col5key) return p[g.col5key];
+  return p.eloBest ?? (p.puzzles!=null?p.puzzles:null);
+}
+/* le joueur suivi (SimpleChess, Checkmate, SocialChess, Chess Hotel) */
+const MY_NAMES = () => [CFG.MY_USERNAME, CFG.MY_USERNAME_CM, CFG.MY_USERNAME_SC, CFG.MY_USERNAME_CH].filter(Boolean);
+const isMeName = n => MY_NAMES().includes(n);
+
 function render(){
   const needle=$("search").value.trim().toLowerCase();
   const cc=$("countryFilter").value;
@@ -862,16 +1016,16 @@ function render(){
   } else $("moversInfo").textContent="";
   rows.forEach(p=>{
     const tr=document.createElement("tr");
-    const isMe=(CFG.MY_USERNAME_CM && p.name===CFG.MY_USERNAME_CM) || (CFG.MY_USERNAME && p.name===CFG.MY_USERNAME);
+    const isMe=isMeName(p.name);
     tr.className=(p.rank&&p.rank<=3?"top"+p.rank:"")+(isMe?" me":"")+" clickable";
-    const flag = hasFlagEmoji(p.name) ? "" : flagEmoji(p.country);
-    const mvCell = moverCell(moverState(state.game,state.mode,p));
+    const flag = (state.game==="chesshotel"||hasFlagEmoji(p.name)) ? "" : flagEmoji(p.country);
+    const mvCell = moversOn ? moverCell(moverState(state.game,state.mode,p)) : "";   // marqueurs seulement en mode « mouvements »
     tr.innerHTML=`
       <td class="rank">${p.rank||"—"}${mvCell?"<br>":""}${mvCell}</td>
-      <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}${(CFG.MY_USERNAME_CM && p.name===CFG.MY_USERNAME_CM)||(CFG.MY_USERNAME && p.name===CFG.MY_USERNAME)?"<span class='you'>vous</span>":""}</td>
-      <td><span class="sub">${esc(p.country||"—")}</span></td>
+      <td class="name" title="${esc(p.name)}">${flag}<span>${esc(p.name)}</span>${p.title?` <span class="sub">${esc(p.title)}</span>`:""}${isMe?"<span class='you'>vous</span>":""}</td>
+      <td><span class="sub">${esc(c3value(p))}</span></td>
       <td style="text-align:right" class="elo">${p.elo||"—"}</td>
-      <td style="text-align:right" class="sub">${(p.eloBest ?? (p.puzzles!=null?p.puzzles:null)) ?? "—"}</td>
+      <td style="text-align:right" class="sub">${c5value(p) ?? "—"}</td>
       <td style="text-align:right" class="sub">${p.wins??"—"}</td>
       <td style="text-align:right" class="sub">${p.losses??"—"}</td>
       <td style="text-align:right" class="sub">${p.draws??"—"}</td>
@@ -885,8 +1039,10 @@ function render(){
   } else {
     const scope = national ? ("classement national "+natCC+" · rangs officiels")
                 : (state.game==="checkmate" ? "classement officiel de l'app"
-                                            : "top "+lastPlayers.length+" mondial");
-    const detail = national ? ""
+                : (state.game==="chesshotel" ? (state.mode==="elite" ?"ligue officielle Chess Hotel · élite classée à l\'Elo"
+                                                              :"ligue officielle Chess Hotel · classement aux points de la saison")
+                                             : "top "+lastPlayers.length+" mondial"));
+    const detail = (national || state.game==="chesshotel") ? ""
       : (base.length ? ` · rangs n°${base[0].rank||"?"} à n°${base[base.length-1].rank||"?"} du jeu` : "");
     el.textContent = `${rows.length} joueur(s) · ${scope}${detail}`
       + (rows.length===1 && remoteRow && rows[0]===remoteRow ? " · trouvé directement dans la base (hors fenêtre)" : "");
@@ -922,7 +1078,9 @@ async function showPlayer(p){
       ? await SimpleChess.player(p.id)
       : await (PROVIDERS[state.game]||SocialChess).player(p.id);
     if(data.avatar){ const im=document.createElement("img"); im.src=data.avatar; $("ppAva").innerHTML=""; $("ppAva").appendChild(im); }
-    $("ppSub").textContent = `${flagEmoji(data.country)} ${data.country||"—"} · ${data.extra||""}`.replace(/\s+/g," ").trim();
+    const locTxt = data.country ? `${flagEmoji(data.country)} ${data.country}`
+                                : (state.game==="chesshotel" ? "" : `${flagEmoji("")} —`);
+    $("ppSub").textContent = `${locTxt}${locTxt&&data.extra?" · ":""}${data.extra||""}`.replace(/\s+/g," ").trim();
     const grid=panel.querySelector(".stats-grid"); grid.innerHTML="";
     data.ratings.forEach(r=>{
       const d=document.createElement("div");
@@ -1024,7 +1182,7 @@ async function showAccount(){
   if(state.game==="socialchess"){ /* le compte perso est lié à SimpleChess */ }
   panel.innerHTML=`<div class="panel-head">
       <div class="avatar">👤</div>
-      <div><h2>Mon compte — ${esc(CFG.MY_USERNAME)}</h2><div class="sub">SimpleChess · cliquez sur un mode pour voir son graphique${CFG.MY_USERNAME_CM?" · Checkmate : "+esc(CFG.MY_USERNAME_CM):""}</div></div>
+      <div><h2>Mon compte — ${esc(CFG.MY_USERNAME)}</h2><div class="sub">SimpleChess · cliquez sur un mode pour voir son graphique${CFG.MY_USERNAME_CM?" · Checkmate : "+esc(CFG.MY_USERNAME_CM):""}${CFG.MY_USERNAME_CH?" · Chess Hotel : "+esc(CFG.MY_USERNAME_CH):""}</div></div>
       <button class="panel-close" onclick="closePanels()">✕</button>
     </div><div class="stats-grid"><div class="msg">Chargement…</div></div>`;
   const savedMode = state.mode;
@@ -1078,6 +1236,27 @@ async function showAccount(){
           <div class="chart-note">Source : classement de l'app Checkmate (base Firestore publique, lecture seule) — l'Elo y est un « niveau » unique, sans cadences.</div>`;
       }catch(e){
         $("cmAcc").innerHTML=`<div class="chart-note">Compte Checkmate indisponible : ${esc(e.message)}</div>`;
+      }
+    }
+
+    /* 🏨 Mon compte Chess Hotel (Foggy Media) — ligues de la saison */
+    if(CFG.MY_USERNAME_CH && PROVIDERS.chesshotel){
+      const chBlock=document.createElement("div");
+      chBlock.className="chart-block";
+      chBlock.innerHTML=`<h3>🏨 Mon compte Chess Hotel <span class="delta flat">Foggy Media · ${esc(CFG.MY_USERNAME_CH)}</span></h3><div id="chAcc"><div class="msg">Chargement…</div></div>`;
+      panel.appendChild(chBlock);
+      try{
+        const d=await ChessHotel.player(CFG.MY_USERNAME_CH);
+        $("chAcc").innerHTML=d.ratings.map(r=>`<div class="stat-card" style="cursor:default;max-width:440px">
+            <div class="m-title">${esc(d.name)}${r.tier?" · "+esc(r.tier):""}</div>
+            <div class="m-elo">${r.elo||"—"}</div>
+            <div class="m-meta">${r.games||0} parties (${r.wins||0}V/${r.losses||0}D/${r.draws||0}N) · ${r.points||0} pts de ligue</div>
+            ${r.rank?`<span class="m-rank">#${r.rank} de la division</span>`:""}
+          </div>`).join("")
+          +`<div class="chart-note">Source : ligues Chess Hotel (/api/v1/division-scores, lecture seule). Le site ne publie
+            pas d'annuaire : seuls les joueurs de la saison en cours sont trouvables.</div>`;
+      }catch(e){
+        $("chAcc").innerHTML=`<div class="chart-note">Compte Chess Hotel : ${esc(e.message)}</div>`;
       }
     }
     async function drawMyChart(mode){
@@ -1224,6 +1403,13 @@ async function providerTotals(){
     }catch(e){
       res={byMode:{}, note:"Totaux Checkmate momentanément indisponibles (accès classement fermé ?)"};
     }
+  } else if(state.game==="chesshotel"){
+    try{
+      const t=await ChessHotel.totals();
+      res={byMode:t.byMode, note:t.note};
+    }catch(e){
+      res={byMode:{}, note:"Totaux Chess Hotel momentanément indisponibles."};
+    }
   } else {
     res={byMode:{}, note:"SimpleChess ne publie pas le nombre total de joueurs classés (top 100 public uniquement)."};
   }
@@ -1277,6 +1463,22 @@ async function openStats(){
    ========================================================= */
 function openCountries(){
   openPanel("countriesPanel");
+  /* Chess Hotel ne publie pas de pays : on montre la répartition par niveau de ligue */
+  if(state.game==="chesshotel"){
+    const agg={};
+    lastPlayers.forEach(p=>{ const t=p.tier||"Placement"; (agg[t]=agg[t]||[]).push(p); });
+    const best=ps=>ps.slice().sort((a,b)=>b.points-a.points)[0];
+    const list=Object.entries(agg).sort((a,b)=>b[1].length-a[1].length).map(([t,ps])=>
+      `<div class="country-row" style="cursor:default"><span style="font-size:20px">🏅</span><b>${esc(t)}</b>
+        <span class="c-avg">${ps.length} joueur(s)</span>
+        <span class="c-count">meilleur : ${esc(best(ps).name)} (${best(ps).points} pts · Elo ${best(ps).elo})</span></div>`).join("");
+    $("countriesPanel").innerHTML=`<div class="panel-head"><div class="avatar">🏅</div>
+      <div><h2>Niveaux de ligue — Chess Hotel · ${esc(curModeLabel())}</h2><div class="sub">table de la saison en cours · ${lastPlayers.length} joueur(s)</div></div>
+      <button class="panel-close" onclick="closePanels()">✕</button></div>${list}
+      <div class="chart-note" style="padding:10px 19px">Chess Hotel ne publie pas le pays des joueurs : ce panneau
+      montre la répartition par niveau (Placement → Maître) à la place des pays.</div>`;
+    return;
+  }
   const agg={};
   lastPlayers.forEach(p=>{
     const c=p.country||"—";

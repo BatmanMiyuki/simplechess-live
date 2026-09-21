@@ -91,7 +91,43 @@ def _cm_doc(d):
     return f
 
 
+def _cm_refresh_token() -> str:
+    """Jeton de rafraîchissement d'une session anonyme existante, si l'on en a un.
+
+    Priorité : $CM_REFRESH, puis $CM_SESSION (fichier JSON), puis anon.json local.
+    Évite de créer une nouvelle session anonyme à chaque génération, ce que
+    Firebase finit par refuser (TOO_MANY_ATTEMPTS_TRY_LATER)."""
+    tok = os.environ.get("CM_REFRESH", "").strip()
+    if tok:
+        return tok
+    cands = []
+    if os.environ.get("CM_SESSION"):
+        cands.append(pathlib.Path(os.environ["CM_SESSION"]))
+    cands += [ROOT / "checkmate" / "anon2.json", ROOT.parent / "checkmate" / "anon2.json"]
+    for p in cands:
+        try:
+            j = json.loads(pathlib.Path(p).read_text(encoding="utf-8"))
+            if j.get("refreshToken"):
+                return j["refreshToken"]
+        except Exception:
+            continue
+    return ""
+
+
 async def _cm_token(client) -> str:
+    """Jeton d'accès Firestore : on rafraîchit la session existante si possible,
+    sinon on crée une session anonyme (lecture seule)."""
+    refresh = _cm_refresh_token()
+    if refresh:
+        try:
+            r = await client.post(f"https://securetoken.googleapis.com/v1/token?key={CM_KEY}",
+                                  data={"grant_type": "refresh_token", "refresh_token": refresh})
+            r.raise_for_status()
+            j = r.json()
+            if j.get("id_token"):
+                return j["id_token"]
+        except Exception as e:      # jeton expiré/révoqué : on retombe sur une session neuve
+            print(f"⚠️  Rafraîchissement de la session Checkmate impossible ({e}) — nouvelle session anonyme")
     r = await client.post(f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={CM_KEY}",
                           json={"returnSecureToken": True})
     r.raise_for_status()
@@ -324,6 +360,83 @@ class SCoClient:
         return mx or None
 
 
+# --- Chess Hotel (Foggy Media AB) -------------------------------------------
+# Le jeu ne publie pas d'Elo mondial : chaque saison, les joueurs marquent des
+# POINTS dans la table de la ligue de leur cadence (le classement « un peu
+# différent ») ; l'élite Diamant/Maître est classée à l'Elo.
+CH_API = "https://www.chesshotel.com/api/v1"
+CH_DIV = {"chess960": 1, "bullet": 2, "blitz": 3, "rapid": 4}      # cadence -> division
+CH_ELITE = [5, 6]                                                  # Diamant, Maître
+CH_LABELS = {"blitz": "Blitz", "rapid": "Rapid", "bullet": "Bullet",
+             "chess960": "Chess960", "elite": "Élite"}
+CH_TIERS = {"placement": "Placement", "bronze": "Bronze", "silver": "Argent", "gold": "Or",
+            "platinum": "Platine", "diamond": "Diamant", "master": "Maître"}
+CH_NOTE = ("Ligues Chess Hotel : classement officiel par POINTS de la saison en cours "
+           "(toutes les cadences). L'Elo est affiché à titre indicatif ; l'élite "
+           "Diamant/Maître est classée à l'Elo.")
+
+
+async def _ch_division(client, div_id: int) -> list:
+    """Table brute d'une division de ligue (API publique, lecture seule)."""
+    r = await client.get(f"{CH_API}/division-scores/{div_id}")
+    r.raise_for_status()
+    return [x for x in (r.json().get("divisionScores") or []) if x.get("username")]
+
+
+def _ch_rows(raw: list, by_elo: bool = False) -> list:
+    """Lignes normalisées (mêmes champs que les autres jeux) + niveau et points."""
+    raw = sorted(raw, key=lambda x: (-(x.get("elo") if by_elo else x.get("points") or 0),
+                                     -(x.get("points") if by_elo else x.get("elo") or 0),
+                                     str(x.get("username") or "")))
+    rows = []
+    for i, x in enumerate(raw, 1):
+        rows.append({
+            "rank": i, "username": (x.get("username") or str(x.get("userId"))).strip(),
+            "country": "", "tier": CH_TIERS.get(x.get("leagueName"), x.get("leagueName") or ""),
+            "league": x.get("leagueName") or "",
+            "elo": int(x.get("elo") or 0), "elo_best": None,
+            "points": int(x.get("points") or 0),
+            "wins": int(x.get("wins") or 0), "losses": int(x.get("losses") or 0),
+            "draws": int(x.get("draws") or 0), "games": int(x.get("gameNr") or 0),
+            "season": int(x.get("season") or 0),
+        })
+    return rows
+
+
+async def fetch_chesshotel() -> dict:
+    """Classements des ligues Chess Hotel : une table par cadence + l'élite."""
+    out = {}
+    async with httpx.AsyncClient(timeout=90, headers={"Accept": "application/json"}) as client:
+        for mode, div in CH_DIV.items():
+            raw = await _ch_division(client, div)
+            rows = _ch_rows(raw)
+            promus = sum(1 for r in rows if r["league"] != "placement")
+            out[( "chesshotel", mode)] = {
+                "label": CH_LABELS[mode], "rows": rows, "total": len(rows), "note": CH_NOTE,
+                "extra": f"{promus} joueur(s) déjà promu(s) au niveau supérieur" if promus else "",
+            }
+        raw = []
+        for div in CH_ELITE:
+            raw += await _ch_division(client, div)
+        rows = _ch_rows(raw, by_elo=True)
+        out[("chesshotel", "elite")] = {
+            "label": "Élite (Diamant + Maître)", "rows": rows, "total": len(rows),
+            "note": "Ligues élite Chess Hotel (Diamant et Maître), classées à l'Elo.",
+            "extra": "",
+        }
+    return out
+
+
+def text_chesshotel(rows) -> str:
+    """Top 10 d'une ligue Chess Hotel en texte : points, Elo, niveau, statistiques."""
+    lines = []
+    for p in rows[:10]:
+        lines.append(f"{p['rank']}. {p['username']} — {p['points']} points de ligue "
+                     f"(Elo {p['elo']}, niveau {p['tier'] or '?'}, {p['games']} parties, "
+                     f"{p['wins']}V/{p['losses']}D/{p['draws']}N, saison {p['season']})")
+    return "\n".join(lines)
+
+
 def fr_date() -> str:
     return datetime.date.today().strftime("%Y-%m-%d")
 
@@ -333,7 +446,7 @@ def fr_date() -> str:
 # ---------------------------------------------------------------------------
 
 def row_html(p, provider, col5="elo_best") -> str:
-    flag = f'<td>{esc(p["country"] or "—")}</td>'
+    flag = f'<td>{esc(p.get("tier") or p["country"] or "—")}</td>'
     ranks = p["rank"] or 1
     c5 = p.get(col5)
     return (f'<tr><td class="rk">{ranks}</td><td class="nm">{esc(p["username"])}</td>{flag}'
@@ -343,7 +456,8 @@ def row_html(p, provider, col5="elo_best") -> str:
 
 
 def page(game_name: str, mode_label: str, mode_id: str, rows: list[dict],
-         total: int | None, note: str, col5_label: str = "Elo max", col5: str = "elo_best") -> str:
+         total: int | None, note: str, col5_label: str = "Elo max", col5: str = "elo_best",
+         col3_label: str = "Pays", blurb: str | None = None) -> str:
     url = f"{SITE}/public/top/{game_name.lower()}/{mode_id}/index.html"
     top_entries = []
     table = "".join(row_html(p, game_name, col5) for p in rows[:100])
@@ -361,13 +475,17 @@ def page(game_name: str, mode_label: str, mode_id: str, rows: list[dict],
         "distribution": {"@type": "DataDownload", "contentUrl": url},
         "about": {"@type": "Thing", "name": "Jeu d'échecs en ligne"},
     }
-    total_html = f"<p class='tot'>{total:,} joueurs classés à ce jour".replace(",", " ") if total else \
+    if blurb is None:
+        blurb = (f"Classement en direct {esc(mode_label)} {esc(game_name)} : top 100 mondial, "
+                 f"Elo, pays, statistiques. Mis à jour le {fr_date()}.")
+    total_html = f"<p class='tot'>{total:,} joueurs classés".replace(",", " ") + \
+                 ("</p>" if game_name != "Chess Hotel" else " (saison en cours)</p>") if total else \
                  f"<p class='tot'>ℹ️ {note}</p>"
     return f"""<!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Top {len(rows[:100])} {esc(mode_label)} {esc(game_name)} — ChessLive</title>
-<meta name="description" content="Classement en direct {esc(mode_label)} {esc(game_name)} : top 100 mondial, Elo, pays, statistiques. Mis à jour le {fr_date()}.">
+<meta name="description" content="{blurb}">
 <link rel="canonical" href="{url}">
 <script type="application/ld+json">{json.dumps(jld, ensure_ascii=False)}</script>
 <style>
@@ -383,7 +501,7 @@ def page(game_name: str, mode_label: str, mode_id: str, rows: list[dict],
 <h1>Top {esc(mode_label)} <span>{esc(game_name)}</span> — ChessLive</h1>
 <p class="meta">Classement en direct (projet non officiel) · généré le {fr_date()} · <a href="{SITE}/">ChessLive</a></p>
 {total_html}
-<table><thead><tr><th>#</th><th>Joueur</th><th>Pays</th><th>Elo</th><th>{esc(col5_label)}</th><th>V</th><th>D</th><th>N</th><th>Parties</th></tr></thead>
+<table><thead><tr><th>#</th><th>Joueur</th><th>{esc(col3_label)}</th><th>Elo</th><th>{esc(col5_label)}</th><th>V</th><th>D</th><th>N</th><th>Parties</th></tr></thead>
 <tbody>{table}</tbody></table>
 <footer>ChessLive — non affilié à {esc(game_name)}. Données publiques, usage informatif.
 <a href="{url.replace('/index.html','')}.txt">version texte</a> · <a href="{SITE}/public/llms-top.txt">top 10 texte (IA)</a></footer>
@@ -438,6 +556,10 @@ async def fetch_all():
             "label": label, "rows": rows, "total": total, "note": "",
         }
     try:
+        data.update(await fetch_chesshotel())
+    except Exception as e:      # l'éditeur peut fermer l'accès : on n'échoue pas
+        print(f"⚠️  Chess Hotel indisponible : {e}")
+    try:
         cm = await fetch_checkmate(100)
         try:
             me = await fetch_checkmate_player(config_pseudos()[1])
@@ -486,9 +608,10 @@ Sitemap: {SITE}/sitemap.xml
     llms = f"""# ChessLive
 
 > Classements en direct (non officiels) des jeux d'échecs en ligne SimpleChess
-> (Europe Echecs), SocialChess (Woodchop Software) et Checkmate / « Chess Online
-> & Offline » (Splend Apps). Sources : API publiques des plateformes et, pour
-> Checkmate, la base de classement de l'app (lecture seule, session anonyme).
+> (Europe Echecs), SocialChess (Woodchop Software), Checkmate / « Chess Online
+> & Offline » (Splend Apps) et Chess Hotel (Foggy Media). Sources : API publiques
+> des plateformes et, pour Checkmate, la base de classement de l'app (lecture
+> seule, session anonyme).
 > Dernière mise à jour : {fr_date()}.
 
 Les données détaillées sont dans le fichier `public/llms-top.txt` :
@@ -500,6 +623,7 @@ joueurs (pseudo, Elo, rang, jeu).
 - [SimpleChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): bullet, blitz, rapide, chess960, puzzle battle
 - [SocialChess — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): Bullet, Blitz, Rapid, Chess960, Classical, Fast, Slow
 - [Checkmate — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): classement mondial + classement France (rangs officiels)
+- [Chess Hotel — top 10 (texte, recommandé)]({SITE}/public/llms-top.txt): ligues Blitz, Rapid, Bullet, Chess960 (points de la saison) + élite Diamant/Maître
 - [Pages HTML par classement]({SITE}/public/): top 100 avec statistiques
 - [Index des joueurs]({SITE}/public/players.txt): pseudo → Elo, rang, jeu
 - [Flux RSS]({SITE}/public/rss.xml): changements du top
@@ -507,8 +631,11 @@ joueurs (pseudo, Elo, rang, jeu).
 ## Notes
 
 - Projets non officiels, à but informatif, non affiliés aux éditeurs des jeux
-  (Europe Echecs / SimpleChess, Woodchop Software / SocialChess, Splend Apps / Checkmate).
+  (Europe Echecs / SimpleChess, Woodchop Software / SocialChess, Splend Apps / Checkmate,
+  Foggy Media / Chess Hotel).
 - Classement Checkmate : ordre = Elo, puis victoires, puis points de puzzles (règle de l'app).
+- Classement Chess Hotel : ligues par saison, une table par cadence, classée aux POINTS
+  (l'élite Diamant/Maître est classée à l'Elo). Aucun Elo mondial n'est publié par le jeu.
 - Les classements changent en général une fois par jour (SimpleChess ~60 min,
   SocialChess temps réel). Ce site est mis à jour quotidiennement.
 - Pour trouver un joueur, cherchez son pseudo dans `public/players.txt`.
@@ -517,7 +644,7 @@ joueurs (pseudo, Elo, rang, jeu).
 
     # ai.txt — simple déclaration d'indexation
     ai = f"""# AI.txt
-ChessLive — classements échecs en direct (SimpleChess, SocialChess, Checkmate)
+ChessLive — classements échecs en direct (SimpleChess, SocialChess, Checkmate, Chess Hotel)
 URL: {SITE}
 Contenu utile pour les agents IA:
 - {SITE}/public/llms-top.txt  (top 10 par mode, texte)
@@ -552,15 +679,20 @@ def main():
     for (game, mode_id), d in sorted(data.items(), key=lambda kv: (kv[0][0], kv[0][1])):
         label = d["label"]
         game_label = {"simplechess": "SimpleChess", "socialchess": "SocialChess",
-                      "checkmate": "Checkmate"}.get(game, game)
+                      "checkmate": "Checkmate", "chesshotel": "Chess Hotel"}.get(game, game)
         dirp = PUB / "top" / game / mode_id
         dirp.mkdir(parents=True, exist_ok=True)
         url = f"{SITE}/public/top/{game}/{mode_id}/index.html"
         cm = game == "checkmate"
+        ch = game == "chesshotel"
         (dirp / "index.html").write_text(
             page(game_label, label, mode_id, d["rows"], d["total"], d["note"],
-                 col5_label="Puzzles" if cm else "Elo max",
-                 col5="puzzles" if cm else "elo_best"),
+                 col5_label="Points" if ch else ("Puzzles" if cm else "Elo max"),
+                 col5="points" if ch else ("puzzles" if cm else "elo_best"),
+                 col3_label="Niveau" if ch else "Pays",
+                 blurb=(f"Ligue {esc(label)} Chess Hotel (Foggy Media) : classement officiel de la "
+                        f"saison en cours — points de ligue, Elo, niveau, victoires et défaites. "
+                        f"Mis à jour le {fr_date()}." if ch else None)),
             encoding="utf-8")
         sitemap.append({"loc": url, "lastmod": frd})
         hub_rows.append(
@@ -573,6 +705,8 @@ def main():
         llms_lines.append(f"## {game_label} — {label}")
         if game == "checkmate":
             llms_lines.append(text_checkmate(d["rows"]))
+        elif ch:
+            llms_lines.append(text_chesshotel(d["rows"]))
         else:
             llms_lines.append(text_top(d["rows"]))
         llms_lines.append("")
@@ -589,13 +723,15 @@ def main():
             rss_items.append(
                 f"<item><title>{game_label} {label} #{p['rank']} : {esc(p['username'])}</title>"
                 f"<link>{url}</link><guid>{url}#{p['rank']}</guid>"
-                f"<description>{esc(p['username'])} — Elo {p['elo']} ({p['country'] or '?'})</description>"
+                f"<description>{esc(p['username'])} — Elo {p['elo']} "
+                f"({p.get('tier') or p['country'] or '?'}"
+                + (f", {p['points']} pts" if p.get('points') else "") + ")</description>"
                 f"<pubDate>{datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')}</pubDate></item>")
 
     (PUB / "index.html").write_text(
         f"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
 <title>ChessLive — classements échecs en direct (pages publiques)</title>
-<meta name="description" content="Classements publics SimpleChess, SocialChess & Checkmate (Chess Online & Offline) : top par mode, joueurs, Elo. Pages lisibles par les moteurs de recherche et les IA.">
+<meta name="description" content="Classements publics SimpleChess, SocialChess, Checkmate (Chess Online & Offline) & Chess Hotel : top par mode, ligues, joueurs, Elo. Pages lisibles par les moteurs de recherche et les IA.">
 <link rel="canonical" href="{SITE}/public/">
 <style>body{{font-family:system-ui,Arial,sans-serif;background:#0a0e13;color:#eef4f8;padding:24px}}
 .wrap{{max-width:860px;margin:auto}}h1{{font-size:26px}}h1 span{{color:#7fdb6a}}
@@ -636,15 +772,18 @@ li{{margin:8px 0;font-size:15px}}.meta{{color:#8fa0b0;font-size:13px}}</style></
 <rss version="2.0"><channel>
 <title>ChessLive — classements échecs en direct</title>
 <link>{SITE}/public/</link>
-<description>Top 10 SimpleChess, SocialChess & Checkmate, mis à jour quotidiennement</description>
+<description>Top 10 SimpleChess, SocialChess, Checkmate & Chess Hotel (ligues), mis à jour quotidiennement</description>
 <lastBuildDate>{datetime.datetime.now(datetime.timezone.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
 {''.join(rss_items)}</channel></rss>""",
         encoding="utf-8")
 
     # versions texte des pages (confort IA)
     for (game, mode_id), d in data.items():
-        tot_lbl = "Comptes au total : " if game == "checkmate" else "Total joueurs classés : "
-        body = text_checkmate(d["rows"]) if game == "checkmate" else text_top(d["rows"])
+        tot_lbl = ("Comptes au total : " if game == "checkmate"
+                   else ("Joueurs classés (saison) : " if game == "chesshotel"
+                         else "Total joueurs classés : "))
+        body = (text_checkmate(d["rows"]) if game == "checkmate"
+                else (text_chesshotel(d["rows"]) if game == "chesshotel" else text_top(d["rows"])))
         txt = (f"ChessLive — Top {d['label']} {game} ({frd})\n"
                + (tot_lbl + str(d["total"]) + "\n" if d["total"] else "")
                + body + "\n")
